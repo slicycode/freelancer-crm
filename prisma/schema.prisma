@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  clerkId   String    @unique
+  email     String    @unique
+  name      String?
+  imageUrl  String?
+  clients   Client[]
+  projects  Project[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Client {
+  id             String          @id @default(cuid())
+  name           String
+  email          String?
+  phone          String?
+  company        String?
+  notes          String?
+  tags           Json            @default("[]") // Stored as JSON array
+  status         ClientStatus    @default(ACTIVE)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  communications Communication[]
+  projects       Project[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([userId, updatedAt])
+  @@index([userId, name])
+  @@index([userId, status])
+}
+
+model Communication {
+  id          String            @id @default(cuid())
+  type        CommunicationType
+  subject     String
+  content     String            @db.Text
+  sentAt      DateTime          @default(now())
+  client      Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId    String
+  project     Project?          @relation(fields: [projectId], references: [id])
+  projectId   String?
+  attachments Attachment[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([clientId])
+  @@index([projectId])
+}
+
+model Project {
+  id             String          @id @default(cuid())
+  name           String
+  description    String?         @db.Text
+  status         ProjectStatus   @default(PROPOSAL)
+  startDate      DateTime?
+  endDate        DateTime?
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  client         Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId       String
+  communications Communication[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([clientId])
+}
+
+model Attachment {
+  id              String        @id @default(cuid())
+  name            String
+  url             String
+  size            Int
+  type            String
+  communication   Communication @relation(fields: [communicationId], references: [id], onDelete: Cascade)
+  communicationId String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([communicationId])
+}
+
+enum CommunicationType {
+  EMAIL
+  CALL
+  MEETING
+  NOTE
+}
+
+enum ProjectStatus {
+  PROPOSAL
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELED
+}
+
+enum ClientStatus {
+  ACTIVE
+  ARCHIVED
+}
