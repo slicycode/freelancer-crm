@@ -55,7 +55,7 @@ export function CreateTemplateDialog({ children }: CreateTemplateDialogProps) {
     setLoading(true);
 
     try {
-      const template = await createDocumentTemplate({
+      await createDocumentTemplate({
         name: name.trim(),
         description: description.trim() || undefined,
         type,

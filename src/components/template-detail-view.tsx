@@ -1,8 +1,8 @@
 "use client";
 
+import { generateEnhancedDocument } from "@/app/actions/document-export";
 import {
   deleteDocumentTemplate,
-  generateDocumentFromTemplate,
   generateTemplatePreview,
   getVariableValues,
   updateDocumentTemplate
@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatDate, getSampleVariables, processTemplateVariables } from "@/lib/utils";
 import {
   Client,
@@ -78,18 +79,18 @@ export function TemplateDetailView({
   clients,
   projects
 }: TemplateDetailViewProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
-  const [previewContent, setPreviewContent] = useState("");
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [isHeaderMinimized, setIsHeaderMinimized] = useState(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState<boolean>(false);
+  const [previewContent, setPreviewContent] = useState<string>("");
+  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
+  const [isHeaderMinimized, setIsHeaderMinimized] = useState<boolean>(false);
 
   // Form state
-  const [name, setName] = useState(template.name);
-  const [description, setDescription] = useState(template.description || "");
-  const [content, setContent] = useState(template.content);
+  const [name, setName] = useState<string>(template.name);
+  const [description, setDescription] = useState<string>(template.description || "");
+  const [content, setContent] = useState<string>(template.content);
   const [variables, setVariables] = useState<DocumentVariable[]>(template.variables);
 
   const router = useRouter();
@@ -99,19 +100,22 @@ export function TemplateDetailView({
   // Scroll detection for sticky header
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
+
     if (!scrollContainer) return;
 
     const handleScroll = () => {
       const scrollTop = scrollContainer.scrollTop;
-      const headerHeight = headerRef.current?.offsetHeight || 0;
 
-      // Minimize header when scrolled past the initial header height
-      setIsHeaderMinimized(scrollTop > headerHeight);
+      const shouldMinimize = scrollTop > 50;
+
+      setIsHeaderMinimized(shouldMinimize);
     };
+
+    handleScroll();
 
     scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
     return () => scrollContainer.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isHeaderMinimized]);
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -225,7 +229,7 @@ export function TemplateDetailView({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Sticky Header */}
       <div
         ref={headerRef}
@@ -266,7 +270,7 @@ export function TemplateDetailView({
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className={`font-bold transition-all duration-300 ease-in-out ${isHeaderMinimized ? 'text-lg' : 'text-xl'
+                    className={`font-semibold transition-all duration-300 ease-in-out min-w-96 ${isHeaderMinimized ? 'text-lg' : 'text-xl'
                       }`}
                     placeholder="Template name"
                   />
@@ -299,77 +303,183 @@ export function TemplateDetailView({
             }`}>
             {isEditing ? (
               <>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditing(false)}
-                  disabled={loading}
-                  size={isHeaderMinimized ? "sm" : "default"}
-                  className={isHeaderMinimized ? "px-2" : ""}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  disabled={loading}
-                  size={isHeaderMinimized ? "sm" : "default"}
-                  className={isHeaderMinimized ? "px-2" : ""}
-                >
-                  {loading && <Loader2 className={`mr-2 animate-spin transition-all duration-300 ease-in-out ${isHeaderMinimized ? 'h-3 w-3' : 'h-4 w-4'
-                    }`} />}
-                  <Save className={`mr-2 transition-all duration-300 ease-in-out ${isHeaderMinimized ? 'h-3 w-3' : 'h-4 w-4'
-                    }`} />
-                  {isHeaderMinimized ? '' : 'Save Changes'}
-                </Button>
+                {isHeaderMinimized ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsEditing(false)}
+                        disabled={loading}
+                        size="sm"
+                        className="px-2"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Cancel Editing</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(false)}
+                    disabled={loading}
+                    size="default"
+                  >
+                    Cancel
+                  </Button>
+                )}
+                {isHeaderMinimized ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={handleSave}
+                        disabled={loading}
+                        size="sm"
+                        className="px-2"
+                      >
+                        {loading && <Loader2 className="h-3 w-3 animate-spin transition-all duration-300 ease-in-out" />}
+                        <Save className="h-3 w-3 transition-all duration-300 ease-in-out" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Save Changes</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    onClick={handleSave}
+                    disabled={loading}
+                    size="default"
+                  >
+                    {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin transition-all duration-300 ease-in-out" />}
+                    <Save className="h-4 w-4 mr-2 transition-all duration-300 ease-in-out" />
+                    Save Changes
+                  </Button>
+                )}
               </>
             ) : (
               <>
-                <GenerateDocumentDialog
-                  template={template}
-                  clients={clients}
-                  projects={projects}
-                >
-                  <Button
-                    className="shine transition-all duration-300 ease-in-out"
-                    size={isHeaderMinimized ? "sm" : "default"}
+                {isHeaderMinimized ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <GenerateDocumentDialog
+                          template={template}
+                          clients={clients}
+                          projects={projects}
+                        >
+                          <Button
+                            className="shine transition-all duration-300 ease-in-out px-2"
+                            size="sm"
+                          >
+                            <Wand2 className="h-3 w-3" />
+                          </Button>
+                        </GenerateDocumentDialog>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Generate Document</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <GenerateDocumentDialog
+                    template={template}
+                    clients={clients}
+                    projects={projects}
                   >
-                    <Wand2 className={`mr-2 transition-all duration-300 ease-in-out ${isHeaderMinimized ? 'h-3 w-3' : 'h-4 w-4'
-                      }`} />
-                    {isHeaderMinimized ? '' : 'Generate'}
+                    <Button
+                      className="shine transition-all duration-300 ease-in-out"
+                      size="default"
+                    >
+                      <Wand2 className="h-4 w-4 mr-2" />
+                      Generate
+                    </Button>
+                  </GenerateDocumentDialog>
+                )}
+
+                {isHeaderMinimized ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        onClick={handlePreview}
+                        size="sm"
+                        className="px-2"
+                      >
+                        <FileText className="h-3 w-3" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Preview Template</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={handlePreview}
+                    size="default"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Preview
                   </Button>
-                </GenerateDocumentDialog>
+                )}
 
-                <Button
-                  variant="outline"
-                  onClick={handlePreview}
-                  size={isHeaderMinimized ? "sm" : "default"}
-                  className={isHeaderMinimized ? "px-2" : ""}
-                >
-                  <FileText className={`transition-all duration-300 ease-in-out ${isHeaderMinimized ? 'h-3 w-3' : 'h-4 w-4 mr-2'
-                    }`} />
-                  {isHeaderMinimized ? '' : 'Preview'}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditing(true)}
-                  size={isHeaderMinimized ? "sm" : "default"}
-                  className={isHeaderMinimized ? "px-2" : ""}
-                >
-                  <Edit className={`transition-all duration-300 ease-in-out ${isHeaderMinimized ? 'h-3 w-3' : 'h-4 w-4 mr-2'
-                    }`} />
-                  {isHeaderMinimized ? '' : 'Edit'}
-                </Button>
+                {isHeaderMinimized ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsEditing(true)}
+                        size="sm"
+                        className="px-2"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Edit Template</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(true)}
+                    size="default"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                )}
 
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={isHeaderMinimized ? "px-1.5" : ""}
-                    >
-                      <MoreHorizontal className={`transition-all duration-300 ease-in-out ${isHeaderMinimized ? 'h-3 w-3' : 'h-4 w-4'
-                        }`} />
-                    </Button>
+                  <DropdownMenuTrigger>
+                    {isHeaderMinimized ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="px-1.5"
+                            >
+                              <MoreHorizontal className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>More Options</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    )}
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => navigator.clipboard.writeText(template.content)}>
@@ -393,7 +503,7 @@ export function TemplateDetailView({
       </div>
 
       {/* Content */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-auto">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -441,12 +551,24 @@ export function TemplateDetailView({
               <div className="flex items-center justify-between mb-4">
                 <Label className="text-base font-medium">Template Variables</Label>
                 {isEditing && (
-                  <VariableDialog onAdd={addVariable}>
-                    <Button size="sm" variant="outline">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Variable
-                    </Button>
-                  </VariableDialog>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      // Simple variable addition - can be enhanced later
+                      const newVariable = {
+                        key: `variable_${variables.length + 1}`,
+                        label: `Variable ${variables.length + 1}`,
+                        type: 'text' as const,
+                        source: 'manual' as const,
+                        required: false
+                      };
+                      addVariable(newVariable);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Variable
+                  </Button>
                 )}
               </div>
 
@@ -578,7 +700,7 @@ export function TemplateDetailView({
           <DialogHeader>
             <DialogTitle>Delete Template</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{template.name}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{template.name}&quot;? This action cannot be undone.
               {generatedDocuments.length > 0 && (
                 <span className="block mt-2 text-amber-600">
                   Note: {generatedDocuments.length} document(s) generated from this template will remain but lose their template reference.
@@ -717,7 +839,7 @@ function GenerateDocumentDialog({ template, clients, projects, children }: Gener
   const [name, setName] = useState("");
   const [clientId, setClientId] = useState<string>("");
   const [projectId, setProjectId] = useState<string>("");
-  const [variableValues, setVariableValues] = useState<Record<string, any>>({});
+  const [variableValues, setVariableValues] = useState<Record<string, string | number | boolean>>({});
 
   const router = useRouter();
 
@@ -737,19 +859,24 @@ function GenerateDocumentDialog({ template, clients, projects, children }: Gener
     setLoading(true);
 
     try {
-      const result = await generateDocumentFromTemplate({
+      const result = await generateEnhancedDocument({
         templateId: template.id,
         name: name.trim(),
         variableValues,
         clientId: clientId || undefined,
         projectId: projectId || undefined,
+        createVersion: true
       });
 
-      toast.success("Document generated successfully");
-      setOpen(false);
-      resetForm();
-      router.push(`/documents/${result.id}`);
-      router.refresh();
+      if (result.success && result.documentId) {
+        toast.success("Document generated successfully");
+        setOpen(false);
+        resetForm();
+        router.push(`/documents/${result.documentId}`);
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to generate document");
+      }
     } catch (error) {
       console.error("Failed to generate document:", error);
       toast.error("Failed to generate document");
@@ -800,7 +927,7 @@ function GenerateDocumentDialog({ template, clients, projects, children }: Gener
           <DialogHeader>
             <DialogTitle>Generate Document from Template</DialogTitle>
             <DialogDescription>
-              Generate a new document from "{template.name}" template. Fill in the variables below.
+              Generate a new document from &quot;{template.name}&quot; template. Fill in the variables below.
             </DialogDescription>
           </DialogHeader>
 
@@ -892,171 +1019,11 @@ function GenerateDocumentDialog({ template, clients, projects, children }: Gener
   );
 }
 
-// Variable Dialog Component
-interface VariableDialogProps {
-  onAdd: (variable: DocumentVariable) => void;
-  children: React.ReactNode;
-}
-
-function VariableDialog({ onAdd, children }: VariableDialogProps) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent>
-        <VariableForm
-          onSave={(variable) => {
-            onAdd(variable);
-            setOpen(false);
-          }}
-          onCancel={() => setOpen(false)}
-        />
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Variable Form Component (reused from create-template-dialog)
-interface VariableFormProps {
-  onSave: (variable: DocumentVariable) => void;
-  onCancel: () => void;
-}
-
-function VariableForm({ onSave, onCancel }: VariableFormProps) {
-  const [key, setKey] = useState("");
-  const [label, setLabel] = useState("");
-  const [type, setType] = useState<DocumentVariable['type']>("text");
-  const [source, setSource] = useState<DocumentVariable['source']>("manual");
-  const [defaultValue, setDefaultValue] = useState("");
-  const [required, setRequired] = useState(false);
-  const [description, setDescription] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!key.trim() || !label.trim()) {
-      toast.error("Key and label are required");
-      return;
-    }
-
-    onSave({
-      key: key.trim(),
-      label: label.trim(),
-      type,
-      source,
-      defaultValue: defaultValue.trim() || undefined,
-      required,
-      description: description.trim() || undefined,
-    });
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <DialogHeader>
-        <DialogTitle>Add Variable</DialogTitle>
-        <DialogDescription>
-          Define a new variable for your template.
-        </DialogDescription>
-      </DialogHeader>
-
-      <div className="grid gap-4 py-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="key">Variable Key *</Label>
-            <Input
-              id="key"
-              placeholder="e.g., client_name"
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="label">Display Label *</Label>
-            <Input
-              id="label"
-              placeholder="e.g., Client Name"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
-            <Select value={type} onValueChange={(value) => setType(value as DocumentVariable['type'])}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="text">Text</SelectItem>
-                <SelectItem value="textarea">Textarea</SelectItem>
-                <SelectItem value="number">Number</SelectItem>
-                <SelectItem value="currency">Currency</SelectItem>
-                <SelectItem value="date">Date</SelectItem>
-                <SelectItem value="select">Select</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="source">Source</Label>
-            <Select value={source} onValueChange={(value) => setSource(value as DocumentVariable['source'])}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="manual">Manual</SelectItem>
-                <SelectItem value="client">Client Data</SelectItem>
-                <SelectItem value="project">Project Data</SelectItem>
-                <SelectItem value="user">User Data</SelectItem>
-                <SelectItem value="system">System Data</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="defaultValue">Default Value</Label>
-          <Input
-            id="defaultValue"
-            placeholder="Optional default value"
-            value={defaultValue}
-            onChange={(e) => setDefaultValue(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Input
-            id="description"
-            placeholder="Optional description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <DialogFooter>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit">
-          Add Variable
-        </Button>
-      </DialogFooter>
-    </form>
-  );
-}
-
 // Variable Input Component (reused from documents-view)
 interface VariableInputProps {
   variable: DocumentVariable;
-  value: any;
-  onChange: (value: any) => void;
+  value: string | number | boolean;
+  onChange: (value: string | number | boolean) => void;
 }
 
 function VariableInput({ variable, value, onChange }: VariableInputProps) {
@@ -1092,7 +1059,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
           <Textarea
             id={variable.key}
             placeholder={variable.description || `Enter ${variable.label.toLowerCase()}...`}
-            value={value || ''}
+            value={value as string || ''}
             onChange={handleChange}
             required={variable.required}
             rows={3}
@@ -1110,7 +1077,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
             {variable.label}
             {variable.required && <span className="text-red-500 ml-1">*</span>}
           </Label>
-          <Select value={value || ''} onValueChange={onChange}>
+          <Select value={value as string || ''} onValueChange={onChange}>
             <SelectTrigger>
               <SelectValue placeholder={`Select ${variable.label.toLowerCase()}`} />
             </SelectTrigger>
@@ -1138,7 +1105,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
           <Input
             id={variable.key}
             type="date"
-            value={value || ''}
+            value={value as string || ''}
             onChange={handleChange}
             required={variable.required}
           />
@@ -1159,7 +1126,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
             id={variable.key}
             type="email"
             placeholder={variable.description || `Enter ${variable.label.toLowerCase()}...`}
-            value={value || ''}
+            value={value as string || ''}
             onChange={handleChange}
             required={variable.required}
           />
@@ -1180,7 +1147,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
             id={variable.key}
             type="tel"
             placeholder="(555) 123-4567"
-            value={value || ''}
+            value={value as string || ''}
             onChange={handleChange}
             required={variable.required}
           />
@@ -1201,7 +1168,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
             id={variable.key}
             type="url"
             placeholder="https://example.com"
-            value={value || ''}
+            value={value as string || ''}
             onChange={handleChange}
             required={variable.required}
           />
@@ -1224,7 +1191,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
               id={variable.key}
               type="text"
               placeholder="0.00"
-              value={value ? value.toString().replace(/[^0-9.]/g, '') : ''}
+              value={value as string ? (value as string).replace(/[^0-9.]/g, '') : ''}
               onChange={handleChange}
               required={variable.required}
               className="pl-8"
@@ -1247,7 +1214,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
             id={variable.key}
             type="number"
             placeholder={variable.description || `Enter ${variable.label.toLowerCase()}...`}
-            value={value || ''}
+            value={value as string || ''}
             onChange={handleChange}
             required={variable.required}
           />
@@ -1268,7 +1235,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
             id={variable.key}
             type="text"
             placeholder={variable.description || `Enter ${variable.label.toLowerCase()}...`}
-            value={value || ''}
+            value={value as string || ''}
             onChange={handleChange}
             required={variable.required}
           />

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { DocumentTemplate, DocumentType, DocumentVariable } from "@/types";
 import { auth } from "@clerk/nextjs/server";
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 export async function getDocumentTemplates(): Promise<DocumentTemplate[]> {
@@ -107,7 +108,7 @@ export async function createDocumentTemplate(templateData: {
         description: templateData.description,
         type: templateData.type,
         content: templateData.content,
-        variables: templateData.variables as unknown as any,
+        variables: templateData.variables as unknown as Prisma.InputJsonValue,
         isDefault: templateData.isDefault || false,
         user: {
           connect: { id: user.id }
@@ -178,13 +179,13 @@ export async function updateDocumentTemplate(
     }
 
     // Build update data object
-    const updateData: any = {};
+    const updateData: Prisma.DocumentTemplateUpdateInput = {};
     
     if (templateData.name !== undefined) updateData.name = templateData.name;
     if (templateData.description !== undefined) updateData.description = templateData.description;
     if (templateData.type !== undefined) updateData.type = templateData.type;
     if (templateData.content !== undefined) updateData.content = templateData.content;
-    if (templateData.variables !== undefined) updateData.variables = templateData.variables as unknown as any;
+    if (templateData.variables !== undefined) updateData.variables = templateData.variables as unknown as Prisma.InputJsonValue;
     if (templateData.isDefault !== undefined) updateData.isDefault = templateData.isDefault;
 
     // Update the template
@@ -317,7 +318,7 @@ export async function getDocumentTemplate(templateId: string): Promise<DocumentT
 export async function generateDocumentFromTemplate(data: {
   templateId: string;
   name: string;
-  variableValues: Record<string, any>;
+  variableValues: Record<string, string | number | boolean>;
   clientId?: string;
   projectId?: string;
   status?: "DRAFT" | "SENT" | "APPROVED" | "REJECTED" | "ARCHIVED";
@@ -360,7 +361,7 @@ export async function generateDocumentFromTemplate(data: {
     variables.forEach(variable => {
       const value = data.variableValues[variable.key] || variable.defaultValue || '';
       const placeholder = `{{${variable.key}}}`;
-      processedContent = processedContent.replace(new RegExp(placeholder, 'g'), value);
+      processedContent = processedContent.replace(new RegExp(placeholder, 'g'), String(value));
     });
 
     // Create the document
@@ -370,7 +371,7 @@ export async function generateDocumentFromTemplate(data: {
         type: template.type,
         status: data.status || "DRAFT",
         content: processedContent,
-        variableValues: data.variableValues as unknown as any,
+        variableValues: data.variableValues as unknown as Prisma.InputJsonValue,
         isTemplate: false,
         user: {
           connect: { id: user.id }
@@ -409,7 +410,7 @@ export async function generateDocumentFromTemplate(data: {
 export async function getVariableValues(
   clientId?: string, 
   projectId?: string
-): Promise<Record<string, any>> {
+): Promise<Record<string, string | number | boolean>> {
   try {
     const { userId } = await auth();
     
@@ -426,7 +427,7 @@ export async function getVariableValues(
       throw new Error("User not found");
     }
 
-    const values: Record<string, any> = {};
+    const values: Record<string, string | number | boolean> = {};
 
     // Add user data
     values.my_name = user.name || '';
@@ -542,7 +543,7 @@ export async function getVariableValues(
 }
 
 // Generate template preview with sample data
-export async function generateTemplatePreview(templateId: string): Promise<{ content: string; variables: Record<string, any> }> {
+export async function generateTemplatePreview(templateId: string): Promise<{ content: string; variables: Record<string, string | number | boolean> }> {
   try {
     const { userId } = await auth();
     
@@ -574,7 +575,7 @@ export async function generateTemplatePreview(templateId: string): Promise<{ con
     }
 
     // Generate sample data for all variables
-    const sampleData: Record<string, any> = {};
+    const sampleData: Record<string, string | number | boolean> = {};
     
     // Add sample user data
     sampleData.my_name = user.name || 'John Smith';
@@ -724,7 +725,7 @@ export async function copyGlobalTemplate(templateId: string): Promise<DocumentTe
         description: globalTemplate.description,
         type: globalTemplate.type,
         content: globalTemplate.content,
-        variables: globalTemplate.variables as unknown as any,
+        variables: globalTemplate.variables as unknown as Prisma.InputJsonValue,
         isDefault: false, // User copies are not default
         isGlobal: false, // User copies are not global
         userId: user.id

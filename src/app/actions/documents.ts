@@ -1,8 +1,9 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { Document, DocumentStatus, DocumentType } from "@/types";
+import { Document, DocumentStatus, DocumentType, DocumentVersion } from "@/types";
 import { auth } from "@clerk/nextjs/server";
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 export async function getDocuments(): Promise<Document[]> {
@@ -64,7 +65,7 @@ export async function getDocuments(): Promise<Document[]> {
       projectName: document.project?.name || undefined,
       templateId: document.templateId,
       templateName: document.template?.name || undefined,
-      variableValues: (document.variableValues as unknown as Record<string, any>) || undefined,
+      variableValues: (document.variableValues as unknown as Record<string, string | number | boolean>) || undefined,
       isTemplate: document.isTemplate,
       userId: document.userId,
       createdAt: document.createdAt,
@@ -87,7 +88,7 @@ export async function createDocument(documentData: {
   clientId?: string;
   projectId?: string;
   templateId?: string;
-  variableValues?: Record<string, any>;
+  variableValues?: Record<string, string | number | boolean>;
 }): Promise<Document> {
   try {
     const { userId } = await auth();
@@ -165,7 +166,7 @@ export async function createDocument(documentData: {
         content: documentData.content || null,
         url: documentData.url || null,
         size: documentData.size || null,
-        variableValues: documentData.variableValues ? (documentData.variableValues as unknown as any) : null,
+        variableValues: documentData.variableValues ? (documentData.variableValues as unknown as Prisma.InputJsonValue) : undefined,
         isTemplate: false,
         user: {
           connect: { id: user.id }
@@ -223,7 +224,7 @@ export async function createDocument(documentData: {
       projectName: document.project?.name || undefined,
       templateId: document.templateId,
       templateName: document.template?.name || undefined,
-      variableValues: (document.variableValues as unknown as Record<string, any>) || undefined,
+      variableValues: (document.variableValues as unknown as Record<string, string | number | boolean>) || undefined,
       isTemplate: document.isTemplate,
       userId: document.userId,
       createdAt: document.createdAt,
@@ -247,7 +248,7 @@ export async function updateDocument(
     size: number;
     clientId: string;
     projectId: string;
-    variableValues: Record<string, any>;
+    variableValues: Record<string, string | number | boolean>;
   }>
 ): Promise<Document> {
   try {
@@ -307,7 +308,7 @@ export async function updateDocument(
     }
 
     // Build update data object
-    const updateData: any = {};
+    const updateData: Prisma.DocumentUpdateInput = {};
     
     if (documentData.name !== undefined) updateData.name = documentData.name;
     if (documentData.type !== undefined) updateData.type = documentData.type;
@@ -315,9 +316,9 @@ export async function updateDocument(
     if (documentData.content !== undefined) updateData.content = documentData.content;
     if (documentData.url !== undefined) updateData.url = documentData.url;
     if (documentData.size !== undefined) updateData.size = documentData.size;
-    if (documentData.clientId !== undefined) updateData.clientId = documentData.clientId;
-    if (documentData.projectId !== undefined) updateData.projectId = documentData.projectId;
-    if (documentData.variableValues !== undefined) updateData.variableValues = documentData.variableValues as unknown as any;
+    if (documentData.clientId !== undefined) updateData.client = { connect: { id: documentData.clientId } };
+    if (documentData.projectId !== undefined) updateData.project = { connect: { id: documentData.projectId } };
+    if (documentData.variableValues !== undefined) updateData.variableValues = documentData.variableValues as unknown as Prisma.InputJsonValue;
 
     // Update the document
     const document = await prisma.document.update({
@@ -361,7 +362,7 @@ export async function updateDocument(
       projectName: document.project?.name || undefined,
       templateId: document.templateId,
       templateName: document.template?.name || undefined,
-      variableValues: (document.variableValues as unknown as Record<string, any>) || undefined,
+      variableValues: (document.variableValues as unknown as Record<string, string | number | boolean>) || undefined,
       isTemplate: document.isTemplate,
       userId: document.userId,
       createdAt: document.createdAt,
@@ -478,7 +479,7 @@ export async function getDocument(documentId: string): Promise<Document> {
       projectName: document.project?.name || undefined,
       templateId: document.templateId,
       templateName: document.template?.name || undefined,
-      variableValues: (document.variableValues as unknown as Record<string, any>) || undefined,
+      variableValues: (document.variableValues as unknown as Record<string, string | number | boolean>) || undefined,
       isTemplate: document.isTemplate,
       userId: document.userId,
       createdAt: document.createdAt,
@@ -487,6 +488,365 @@ export async function getDocument(documentId: string): Promise<Document> {
 
   } catch (error) {
     console.error("Error fetching document:", error);
+    throw error;
+  }
+}
+
+/**
+ * Create a new version of a document
+ */
+export async function createDocumentVersion(
+  documentId: string,
+  changeNotes?: string
+): Promise<DocumentVersion> {
+  try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    // Get the database user ID from Clerk ID
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Verify the document exists and belongs to the user
+    const document = await prisma.document.findFirst({
+      where: {
+        id: documentId,
+        userId: user.id
+      }
+    });
+
+    if (!document) {
+      throw new Error("Document not found or access denied");
+    }
+
+    if (!document.content) {
+      throw new Error("Cannot create version of document without content");
+    }
+
+    // Get the next version number
+    const lastVersion = await prisma.documentVersion.findFirst({
+      where: { documentId },
+      orderBy: { versionNumber: 'desc' }
+    });
+
+    const nextVersionNumber = (lastVersion?.versionNumber || 0) + 1;
+
+    // Calculate content hash for change detection
+    let hash = 0;
+    for (let i = 0; i < document.content.length; i++) {
+      const char = document.content.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    const contentHash = Math.abs(hash).toString(36);
+
+    // Calculate document metrics
+    const text = document.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    const words = text.split(' ').filter(word => word.length > 0);
+    const metrics = {
+      wordCount: words.length,
+      characterCount: text.length,
+      estimatedReadTime: Math.ceil(words.length / 200), // 200 words per minute
+      pageCount: Math.ceil(words.length / 250) // ~250 words per page
+    };
+
+    // Create the version
+    const version = await prisma.documentVersion.create({
+      data: {
+        versionNumber: nextVersionNumber,
+        content: document.content,
+        variableValues: document.variableValues || {},
+        contentHash,
+        changeNotes,
+        metrics: metrics as unknown as {
+          wordCount: number;
+          characterCount: number;
+          estimatedReadTime: number;
+          pageCount: number;
+        },
+        createdBy: user.name || user.email,
+        document: {
+          connect: { id: documentId }
+        }
+      }
+    });
+
+    // Revalidate the document page
+    revalidatePath(`/documents/${documentId}`);
+
+    return {
+      id: version.id,
+      versionNumber: version.versionNumber,
+      content: version.content,
+      variableValues: (version.variableValues as unknown as Record<string, string | number | boolean>) || undefined,
+      contentHash: version.contentHash,
+      changeNotes: version.changeNotes,
+      metrics: (version.metrics as unknown as {
+        wordCount: number;
+        characterCount: number;
+        estimatedReadTime: number;
+        pageCount: number;
+      }) || undefined,
+      createdBy: version.createdBy,
+      documentId: version.documentId,
+      createdAt: version.createdAt,
+    };
+
+  } catch (error) {
+    console.error("Error creating document version:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get all versions of a document
+ */
+export async function getDocumentVersions(documentId: string): Promise<DocumentVersion[]> {
+  try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    // Get the database user ID from Clerk ID
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Verify the document exists and belongs to the user
+    const document = await prisma.document.findFirst({
+      where: {
+        id: documentId,
+        userId: user.id
+      }
+    });
+
+    if (!document) {
+      throw new Error("Document not found or access denied");
+    }
+
+    // Fetch all versions
+    const versions = await prisma.documentVersion.findMany({
+      where: { documentId },
+      orderBy: { versionNumber: 'desc' }
+    });
+
+    return versions.map(version => ({
+      id: version.id,
+      versionNumber: version.versionNumber,
+      content: version.content,
+      variableValues: (version.variableValues as unknown as Record<string, string | number | boolean>) || undefined,
+      contentHash: version.contentHash,
+      changeNotes: version.changeNotes,
+        metrics: (version.metrics as unknown as {
+        wordCount: number;
+        characterCount: number;
+        estimatedReadTime: number;
+        pageCount: number;
+      }) || undefined,
+      createdBy: version.createdBy,
+      documentId: version.documentId,
+      createdAt: version.createdAt,
+    }));
+
+  } catch (error) {
+    console.error("Error fetching document versions:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get a specific version of a document
+ */
+export async function getDocumentVersion(
+  documentId: string, 
+  versionId: string
+): Promise<DocumentVersion> {
+  try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    // Get the database user ID from Clerk ID
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Verify the document exists and belongs to the user
+    const document = await prisma.document.findFirst({
+      where: {
+        id: documentId,
+        userId: user.id
+      }
+    });
+
+    if (!document) {
+      throw new Error("Document not found or access denied");
+    }
+
+    // Fetch the specific version
+    const version = await prisma.documentVersion.findFirst({
+      where: {
+        id: versionId,
+        documentId
+      }
+    });
+
+    if (!version) {
+      throw new Error("Version not found");
+    }
+
+    return {
+      id: version.id,
+      versionNumber: version.versionNumber,
+      content: version.content,
+      variableValues: (version.variableValues as unknown as Record<string, string | number | boolean>) || undefined,
+      contentHash: version.contentHash,
+      changeNotes: version.changeNotes,
+      metrics: (version.metrics as unknown as {
+        wordCount: number;
+        characterCount: number;
+        estimatedReadTime: number;
+        pageCount: number;
+      }) || undefined,
+      createdBy: version.createdBy,
+      documentId: version.documentId,
+      createdAt: version.createdAt,
+    };
+
+  } catch (error) {
+    console.error("Error fetching document version:", error);
+    throw error;
+  }
+}
+
+/**
+ * Restore a document to a specific version
+ */
+export async function restoreDocumentToVersion(
+  documentId: string,
+  versionId: string
+): Promise<Document> {
+  try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+
+    // Get the database user ID from Clerk ID
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Verify the document exists and belongs to the user
+    const document = await prisma.document.findFirst({
+      where: {
+        id: documentId,
+        userId: user.id
+      }
+    });
+
+    if (!document) {
+      throw new Error("Document not found or access denied");
+    }
+
+    // Get the version to restore
+    const version = await prisma.documentVersion.findFirst({
+      where: {
+        id: versionId,
+        documentId
+      }
+    });
+
+    if (!version) {
+      throw new Error("Version not found");
+    }
+
+    // Create a new version with current content before restoring
+    await createDocumentVersion(documentId, `Backup before restoring to v${version.versionNumber}`);
+
+    // Update the document with the version content
+    const updatedDocument = await prisma.document.update({
+      where: { id: documentId },
+      data: {
+        content: version.content,
+        variableValues: version.variableValues as Prisma.InputJsonValue,
+        updatedAt: new Date()
+      },
+      include: {
+        client: {
+          select: {
+            name: true,
+            company: true
+          }
+        },
+        project: {
+          select: {
+            name: true
+          }
+        },
+        template: {
+          select: {
+            name: true
+          }
+        }
+      }
+    });
+
+    // Create a new version for the restore action
+    await createDocumentVersion(documentId, `Restored to v${version.versionNumber}`);
+
+    // Revalidate the document page
+    revalidatePath(`/documents/${documentId}`);
+    revalidatePath("/documents");
+
+    return {
+      id: updatedDocument.id,
+      name: updatedDocument.name,
+      type: updatedDocument.type,
+      status: updatedDocument.status,
+      content: updatedDocument.content,
+      url: updatedDocument.url,
+      size: updatedDocument.size,
+      clientId: updatedDocument.clientId,
+      projectId: updatedDocument.projectId,
+      clientName: updatedDocument.client?.name || undefined,
+      projectName: updatedDocument.project?.name || undefined,
+      templateId: updatedDocument.templateId,
+      templateName: updatedDocument.template?.name || undefined,
+      variableValues: (updatedDocument.variableValues as unknown as Record<string, string | number | boolean>) || undefined,
+      isTemplate: updatedDocument.isTemplate,
+      userId: updatedDocument.userId,
+      createdAt: updatedDocument.createdAt,
+      updatedAt: updatedDocument.updatedAt,
+    };
+
+  } catch (error) {
+    console.error("Error restoring document to version:", error);
     throw error;
   }
 } 

@@ -43,6 +43,7 @@ import {
   Eye,
   EyeOff,
   FileText,
+  GraduationCap,
   Loader2,
   Plus,
   Search,
@@ -50,13 +51,15 @@ import {
   Star,
   Trash2,
   User,
-  Wand2
+  Wand2,
+  X
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CreateTemplateDialog } from "./create-template-dialog";
+import { DocumentGenerationDemo } from "./document-generation-demo";
 
 interface DocumentsViewProps {
   documents: Document[];
@@ -68,6 +71,33 @@ interface DocumentsViewProps {
 export function DocumentsView({ documents, templates, clients, projects }: DocumentsViewProps) {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [tab, setTab] = useState<string>("templates");
+  const [showTutorial, setShowTutorial] = useState<boolean>(false);
+  const [tutorialDismissed, setTutorialDismissed] = useState<boolean>(false);
+
+  // Check if user is new (no templates and no documents)
+  const userTemplates = templates.filter(template => !template.isGlobal);
+  const isNewUser = userTemplates.length === 0 && documents.length === 0;
+
+  // Load tutorial state from localStorage
+  useEffect(() => {
+    const dismissed = localStorage.getItem('document-tutorial-dismissed');
+    setTutorialDismissed(dismissed === 'true');
+
+    // Show tutorial automatically for new users who haven't dismissed it
+    if (isNewUser && dismissed !== 'true') {
+      setShowTutorial(true);
+    }
+  }, [isNewUser]);
+
+  const handleDismissTutorial = () => {
+    setShowTutorial(false);
+    setTutorialDismissed(true);
+    localStorage.setItem('document-tutorial-dismissed', 'true');
+  };
+
+  const handleShowTutorial = () => {
+    setShowTutorial(true);
+  };
 
   const filteredTemplates = templates.filter(template =>
     template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -82,6 +112,97 @@ export function DocumentsView({ documents, templates, clients, projects }: Docum
   return (
     <div className="flex-1 overflow-auto">
       <div className="flex flex-col space-y-4 p-6">
+        {/* Tutorial Banner for New Users */}
+        {isNewUser && !tutorialDismissed && !showTutorial && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-100 dark:bg-blue-900 rounded-full p-2">
+                  <GraduationCap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+                    Welcome to Document Management!
+                  </h3>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                    Learn how to create templates and generate professional documents in minutes.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShowTutorial}
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:text-blue-300"
+                >
+                  Start Tutorial
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDismissTutorial}
+                  className="text-blue-700 hover:bg-blue-100 dark:text-blue-300"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Interactive Tutorial */}
+        {showTutorial && (
+          <div className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/50 dark:to-blue-950/50 border border-indigo-200 dark:border-indigo-800 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <GraduationCap className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <h3 className="font-semibold text-indigo-900 dark:text-indigo-100">
+                  Document Generation Tutorial
+                </h3>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDismissTutorial}
+                className="text-indigo-700 hover:bg-indigo-100 dark:text-indigo-300"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex flex-col lg:flex-row gap-6">
+              <div className="flex-1">
+                <p className="text-indigo-700 dark:text-indigo-300 mb-4">
+                  Follow this interactive demo to learn how our document system works:
+                </p>
+                <ul className="space-y-2 text-sm text-indigo-600 dark:text-indigo-400">
+                  <li className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-indigo-200 dark:bg-indigo-800 text-xs flex items-center justify-center font-medium">1</span>
+                    Choose or create a template with variables
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-indigo-200 dark:bg-indigo-800 text-xs flex items-center justify-center font-medium">2</span>
+                    Configure variables with client/project data
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-indigo-200 dark:bg-indigo-800 text-xs flex items-center justify-center font-medium">3</span>
+                    Generate professional documents instantly
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-indigo-200 dark:bg-indigo-800 text-xs flex items-center justify-center font-medium">4</span>
+                    Export as HTML, PDF, or manage versions
+                  </li>
+                </ul>
+              </div>
+
+              <div className="lg:w-96">
+                <DocumentGenerationDemo />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -94,9 +215,7 @@ export function DocumentsView({ documents, templates, clients, projects }: Docum
             />
           </div>
 
-          <div className="flex gap-2">
-            <CreateTemplateDialog />
-          </div>
+          <CreateTemplateDialog />
         </div>
 
         <Tabs defaultValue="templates" value={tab} onValueChange={setTab}>
@@ -151,7 +270,7 @@ function TemplatesGrid({ templates, clients, projects }: TemplatesGridProps) {
   const handleCopyGlobalTemplate = async (templateId: string) => {
     setLoading(templateId);
     try {
-      const newTemplate = await copyGlobalTemplate(templateId);
+      await copyGlobalTemplate(templateId);
       toast.success("Template copied to your templates!");
       router.refresh();
     } catch (error) {
@@ -613,7 +732,7 @@ function GenerateDocumentDialog({ template, clients, projects, open, onOpenChang
   const [name, setName] = useState("");
   const [clientId, setClientId] = useState<string>("");
   const [projectId, setProjectId] = useState<string>("");
-  const [variableValues, setVariableValues] = useState<Record<string, any>>({});
+  const [variableValues, setVariableValues] = useState<Record<string, string | number | boolean>>({});
 
   const router = useRouter();
 
@@ -696,7 +815,7 @@ function GenerateDocumentDialog({ template, clients, projects, open, onOpenChang
           <DialogHeader>
             <DialogTitle>Generate Document from Template</DialogTitle>
             <DialogDescription>
-              Generate a new document from "{template.name}" template. Fill in the variables below.
+              Generate a new document from &quot;{template.name}&quot; template. Fill in the variables below.
             </DialogDescription>
           </DialogHeader>
 
@@ -790,8 +909,8 @@ function GenerateDocumentDialog({ template, clients, projects, open, onOpenChang
 
 interface VariableInputProps {
   variable: DocumentVariable;
-  value: any;
-  onChange: (value: any) => void;
+  value: string | number | boolean;
+  onChange: (value: string | number | boolean) => void;
 }
 
 function VariableInput({ variable, value, onChange }: VariableInputProps) {
@@ -813,7 +932,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
           <textarea
             id={variable.key}
             placeholder={variable.description || `Enter ${variable.label.toLowerCase()}...`}
-            value={value || ''}
+            value={value as string || ''}
             onChange={handleChange}
             required={variable.required}
             className="w-full p-2 border rounded-md resize-none"
@@ -832,7 +951,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
             {variable.label}
             {variable.required && <span className="text-red-500 ml-1">*</span>}
           </Label>
-          <Select value={value || ''} onValueChange={onChange}>
+          <Select value={value as string || ''} onValueChange={onChange}>
             <SelectTrigger>
               <SelectValue placeholder={`Select ${variable.label.toLowerCase()}`} />
             </SelectTrigger>
@@ -860,7 +979,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
           <Input
             id={variable.key}
             type="date"
-            value={value || ''}
+            value={value as string || ''}
             onChange={handleChange}
             required={variable.required}
           />
@@ -883,7 +1002,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
             type="number"
             step={variable.type === 'currency' ? '0.01' : '1'}
             placeholder={variable.description || `Enter ${variable.label.toLowerCase()}...`}
-            value={value || ''}
+            value={value as string || ''}
             onChange={handleChange}
             required={variable.required}
           />
@@ -904,7 +1023,7 @@ function VariableInput({ variable, value, onChange }: VariableInputProps) {
             id={variable.key}
             type="text"
             placeholder={variable.description || `Enter ${variable.label.toLowerCase()}...`}
-            value={value || ''}
+            value={value as string || ''}
             onChange={handleChange}
             required={variable.required}
           />

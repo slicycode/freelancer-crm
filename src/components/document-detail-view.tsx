@@ -29,11 +29,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatDate, formatFileSize, getSampleVariables, processTemplateVariables } from "@/lib/utils";
 import { Client, Document, DocumentStatus, DocumentType, Project } from "@/types";
 import {
   ArrowLeft,
   Copy,
+  Download,
   Edit,
   ExternalLink,
   Eye,
@@ -41,13 +43,16 @@ import {
   Loader2,
   MoreHorizontal,
   Save,
+  Target,
   Trash2,
-  User
+  User,
+  X
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { DocumentExportDialog, StatusUpdateDialog } from "./document-export-dialog";
 
 interface DocumentDetailViewProps {
   document: Document;
@@ -56,18 +61,18 @@ interface DocumentDetailViewProps {
 }
 
 export function DocumentDetailView({ document, clients, projects }: DocumentDetailViewProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
-  const [isHeaderMinimized, setIsHeaderMinimized] = useState(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState<boolean>(false);
+  const [isHeaderMinimized, setIsHeaderMinimized] = useState<boolean>(false);
 
   // Form state
-  const [name, setName] = useState(document.name);
-  const [status, setStatus] = useState(document.status);
-  const [content, setContent] = useState(document.content || "");
-  const [clientId, setClientId] = useState(document.clientId || "");
-  const [projectId, setProjectId] = useState(document.projectId || "");
+  const [name, setName] = useState<string>(document.name);
+  const [status, setStatus] = useState<DocumentStatus>(document.status);
+  const [content, setContent] = useState<string>(document.content || "");
+  const [clientId, setClientId] = useState<string>(document.clientId || "");
+  const [projectId, setProjectId] = useState<string>(document.projectId || "");
 
   const router = useRouter();
   const headerRef = useRef<HTMLDivElement>(null);
@@ -76,19 +81,22 @@ export function DocumentDetailView({ document, clients, projects }: DocumentDeta
   // Scroll detection for sticky header
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
+
     if (!scrollContainer) return;
 
     const handleScroll = () => {
       const scrollTop = scrollContainer.scrollTop;
-      const headerHeight = headerRef.current?.offsetHeight || 0;
 
-      // Minimize header when scrolled past the initial header height
-      setIsHeaderMinimized(scrollTop > headerHeight);
+      const shouldMinimize = scrollTop > 50;
+
+      setIsHeaderMinimized(shouldMinimize);
     };
+
+    handleScroll();
 
     scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
     return () => scrollContainer.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isHeaderMinimized]);
 
   // Filter projects based on selected client
   const filteredProjects = clientId
@@ -144,10 +152,11 @@ export function DocumentDetailView({ document, clients, projects }: DocumentDeta
   };
 
   const handleClientChange = (value: string) => {
-    setClientId(value);
+    const newClientId = value === "none" ? "" : value;
+    setClientId(newClientId);
     // Reset project selection when client changes if the project doesn't belong to the new client
     const currentProject = projects.find(p => p.id === projectId);
-    if (currentProject && currentProject.clientId !== value) {
+    if (currentProject && currentProject.clientId !== newClientId) {
       setProjectId("");
     }
   };
@@ -221,7 +230,7 @@ export function DocumentDetailView({ document, clients, projects }: DocumentDeta
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Sticky Header */}
       <div
         ref={headerRef}
@@ -262,7 +271,7 @@ export function DocumentDetailView({ document, clients, projects }: DocumentDeta
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className={`font-bold transition-all duration-300 ease-in-out ${isHeaderMinimized ? 'text-lg' : 'text-xl'
+                    className={`font-semibold transition-all duration-300 ease-in-out min-w-96 ${isHeaderMinimized ? 'text-lg' : 'text-xl'
                       }`}
                     placeholder="Document name"
                   />
@@ -307,62 +316,210 @@ export function DocumentDetailView({ document, clients, projects }: DocumentDeta
             }`}>
             {isEditing ? (
               <>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditing(false)}
-                  disabled={loading}
-                  size={isHeaderMinimized ? "sm" : "default"}
-                  className={isHeaderMinimized ? "px-2" : ""}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  disabled={loading}
-                  size={isHeaderMinimized ? "sm" : "default"}
-                  className={isHeaderMinimized ? "px-2" : ""}
-                >
-                  {loading && <Loader2 className={`mr-2 animate-spin transition-all duration-300 ease-in-out ${isHeaderMinimized ? 'h-3 w-3' : 'h-4 w-4'
-                    }`} />}
-                  <Save className={`mr-2 transition-all duration-300 ease-in-out ${isHeaderMinimized ? 'h-3 w-3' : 'h-4 w-4'
-                    }`} />
-                  {isHeaderMinimized ? '' : 'Save Changes'}
-                </Button>
+                {isHeaderMinimized ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsEditing(false)}
+                        disabled={loading}
+                        size="sm"
+                        className="px-2"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Cancel Editing</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(false)}
+                    disabled={loading}
+                    size="default"
+                  >
+                    Cancel
+                  </Button>
+                )}
+                {isHeaderMinimized ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={handleSave}
+                        disabled={loading}
+                        size="sm"
+                        className="px-2"
+                      >
+                        {loading && <Loader2 className="h-3 w-3 animate-spin transition-all duration-300 ease-in-out" />}
+                        <Save className="h-3 w-3 transition-all duration-300 ease-in-out" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Save Changes</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    onClick={handleSave}
+                    disabled={loading}
+                    size="default"
+                  >
+                    {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin transition-all duration-300 ease-in-out" />}
+                    <Save className="h-4 w-4 mr-2 transition-all duration-300 ease-in-out" />
+                    Save Changes
+                  </Button>
+                )}
               </>
             ) : (
               <>
-                <Button
-                  variant="outline"
-                  onClick={handlePreview}
-                  size={isHeaderMinimized ? "sm" : "default"}
-                  className={isHeaderMinimized ? "px-2" : ""}
-                >
-                  <FileText className={`transition-all duration-300 ease-in-out ${isHeaderMinimized ? 'h-3 w-3' : 'h-4 w-4 mr-2'
-                    }`} />
-                  {isHeaderMinimized ? '' : 'Preview'}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditing(true)}
-                  size={isHeaderMinimized ? "sm" : "default"}
-                  className={isHeaderMinimized ? "px-2" : ""}
-                >
-                  <Edit className={`transition-all duration-300 ease-in-out ${isHeaderMinimized ? 'h-3 w-3' : 'h-4 w-4 mr-2'
-                    }`} />
-                  {isHeaderMinimized ? '' : 'Edit'}
-                </Button>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                {/* Export Dialog */}
+                {isHeaderMinimized ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <DocumentExportDialog document={document}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="shine transition-all duration-300 ease-in-out px-2"
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                        </DocumentExportDialog>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Export Document</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <DocumentExportDialog document={document}>
                     <Button
                       variant="outline"
-                      size="sm"
-                      className={isHeaderMinimized ? "px-1.5" : ""}
+                      size="default"
+                      className="shine transition-all duration-300 ease-in-out"
                     >
-                      <MoreHorizontal className={`transition-all duration-300 ease-in-out ${isHeaderMinimized ? 'h-3 w-3' : 'h-4 w-4'
-                        }`} />
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
                     </Button>
+                  </DocumentExportDialog>
+                )}
+
+                {/* Status Update Dialog */}
+                {isHeaderMinimized ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <StatusUpdateDialog document={document}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="px-2"
+                          >
+                            <Target className="h-3 w-3" />
+                          </Button>
+                        </StatusUpdateDialog>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Update Status</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <StatusUpdateDialog document={document}>
+                    <Button
+                      variant="outline"
+                      size="default"
+                    >
+                      <Target className="h-4 w-4 mr-2" />
+                      Status
+                    </Button>
+                  </StatusUpdateDialog>
+                )}
+
+                {isHeaderMinimized ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        onClick={handlePreview}
+                        size="sm"
+                        className="px-2"
+                      >
+                        <FileText className="h-3 w-3" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Preview Document</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={handlePreview}
+                    size="default"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Preview
+                  </Button>
+                )}
+
+                {isHeaderMinimized ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsEditing(true)}
+                        size="sm"
+                        className="px-2"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Edit Document</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditing(true)}
+                    size="default"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                )}
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    {isHeaderMinimized ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="px-1.5"
+                            >
+                              <MoreHorizontal className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>More Options</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    )}
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => navigator.clipboard.writeText(document.content || "")}>
@@ -386,7 +543,7 @@ export function DocumentDetailView({ document, clients, projects }: DocumentDeta
       </div>
 
       {/* Content */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-auto">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -432,7 +589,7 @@ export function DocumentDetailView({ document, clients, projects }: DocumentDeta
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">
-                  This document was generated from the "{document.templateName}" template.
+                  This document was generated from the &quot;{document.templateName}&quot; template.
                 </p>
 
                 {document.variableValues && Object.keys(document.variableValues).length > 0 && (
@@ -485,12 +642,12 @@ export function DocumentDetailView({ document, clients, projects }: DocumentDeta
                   <>
                     <div className="space-y-2">
                       <Label htmlFor="client">Client</Label>
-                      <Select value={clientId} onValueChange={handleClientChange}>
+                      <Select value={clientId || "none"} onValueChange={handleClientChange}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a client" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No client</SelectItem>
+                          <SelectItem value="none">No client</SelectItem>
                           {clients.map((client) => (
                             <SelectItem key={client.id} value={client.id}>
                               {client.name} {client.company && `(${client.company})`}
@@ -502,12 +659,12 @@ export function DocumentDetailView({ document, clients, projects }: DocumentDeta
 
                     <div className="space-y-2">
                       <Label htmlFor="project">Project</Label>
-                      <Select value={projectId} onValueChange={setProjectId}>
+                      <Select value={projectId || "none"} onValueChange={(value) => setProjectId(value === "none" ? "" : value)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a project" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No project</SelectItem>
+                          <SelectItem value="none">No project</SelectItem>
                           {filteredProjects.map((project) => (
                             <SelectItem key={project.id} value={project.id}>
                               {project.name}
@@ -545,7 +702,7 @@ export function DocumentDetailView({ document, clients, projects }: DocumentDeta
           <DialogHeader>
             <DialogTitle>Delete Document</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{document.name}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{document.name}&quot;? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

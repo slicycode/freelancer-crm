@@ -7,18 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id                String             @id @default(cuid())
-  clerkId           String             @unique
-  email             String             @unique
-  name              String?
-  imageUrl          String?
-  clients           Client[]
-  projects          Project[]
-  documents         Document[]
-  documentTemplates DocumentTemplate[]
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+model Attachment {
+  id              String        @id @default(cuid())
+  name            String
+  url             String
+  size            Int
+  type            String
+  communication   Communication @relation(fields: [communicationId], references: [id], onDelete: Cascade)
+  communicationId String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([communicationId])
 }
 
 model Client {
@@ -28,7 +28,7 @@ model Client {
   phone          String?
   company        String?
   notes          String?
-  tags           Json            @default("[]") // Stored as JSON array
+  tags           Json            @default("[]")
   status         ClientStatus    @default(ACTIVE)
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String
@@ -62,6 +62,77 @@ model Communication {
   @@index([projectId])
 }
 
+model Document {
+  id             String            @id @default(cuid())
+  name           String
+  type           DocumentType
+  status         DocumentStatus    @default(DRAFT)
+  content        String?           @db.Text
+  url            String?
+  size           Int?
+  variableValues Json?             @default("{}")
+  isTemplate     Boolean           @default(false)
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  client         Client?           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId       String?
+  project        Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId      String?
+  template       DocumentTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  templateId     String?
+  versions       DocumentVersion[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([projectId])
+  @@index([templateId])
+  @@index([userId, type])
+  @@index([userId, status])
+  @@index([userId, isTemplate])
+}
+
+model DocumentTemplate {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  type        DocumentType
+  content     String       @db.Text
+  variables   Json         @default("[]")
+  isDefault   Boolean      @default(false)
+  isGlobal    Boolean      @default(false)
+  user        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String?
+  documents   Document[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([userId, type])
+  @@index([userId, isDefault])
+  @@index([isGlobal])
+  @@index([isGlobal, type])
+}
+
+model DocumentVersion {
+  id             String   @id @default(cuid())
+  versionNumber  Int
+  content        String   @db.Text
+  variableValues Json?    @default("{}")
+  contentHash    String
+  changeNotes    String?  @db.Text
+  metrics        Json?    @default("{}")
+  createdBy      String
+  document       Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId     String
+  createdAt      DateTime @default(now())
+
+  @@index([documentId])
+  @@index([documentId, versionNumber])
+  @@index([documentId, createdAt])
+}
+
 model Project {
   id             String          @id @default(cuid())
   name           String
@@ -82,70 +153,23 @@ model Project {
   @@index([clientId])
 }
 
-model Attachment {
-  id              String        @id @default(cuid())
-  name            String
-  url             String
-  size            Int
-  type            String
-  communication   Communication @relation(fields: [communicationId], references: [id], onDelete: Cascade)
-  communicationId String
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-
-  @@index([communicationId])
+model User {
+  id                String             @id @default(cuid())
+  clerkId           String             @unique
+  email             String             @unique
+  name              String?
+  imageUrl          String?
+  clients           Client[]
+  projects          Project[]
+  documents         Document[]
+  documentTemplates DocumentTemplate[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 }
 
-model DocumentTemplate {
-  id          String       @id @default(cuid())
-  name        String
-  description String?
-  type        DocumentType
-  content     String       @db.Text // Rich text content with variable placeholders
-  variables   Json         @default("[]") // Array of DocumentVariable objects
-  isDefault   Boolean      @default(false)
-  isGlobal    Boolean      @default(false) // Global templates visible to all users
-  user        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String? // Nullable for global templates
-  documents   Document[] // Documents generated from this template
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-
-  @@index([userId])
-  @@index([userId, type])
-  @@index([userId, isDefault])
-  @@index([isGlobal])
-  @@index([isGlobal, type])
-}
-
-model Document {
-  id             String            @id @default(cuid())
-  name           String
-  type           DocumentType
-  status         DocumentStatus    @default(DRAFT)
-  content        String?           @db.Text
-  url            String?
-  size           Int?
-  variableValues Json?             @default("{}") // Values used when generating from template
-  isTemplate     Boolean           @default(false) // Flag to distinguish templates from documents
-  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId         String
-  client         Client?           @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  clientId       String?
-  project        Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId      String?
-  template       DocumentTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
-  templateId     String?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-
-  @@index([userId])
-  @@index([clientId])
-  @@index([projectId])
-  @@index([templateId])
-  @@index([userId, type])
-  @@index([userId, status])
-  @@index([userId, isTemplate])
+enum ClientStatus {
+  ACTIVE
+  ARCHIVED
 }
 
 enum CommunicationType {
@@ -155,16 +179,11 @@ enum CommunicationType {
   NOTE
 }
 
-enum ProjectStatus {
-  PROPOSAL
-  ACTIVE
-  ON_HOLD
-  COMPLETED
-  CANCELED
-}
-
-enum ClientStatus {
-  ACTIVE
+enum DocumentStatus {
+  DRAFT
+  SENT
+  APPROVED
+  REJECTED
   ARCHIVED
 }
 
@@ -176,10 +195,10 @@ enum DocumentType {
   OTHER
 }
 
-enum DocumentStatus {
-  DRAFT
-  SENT
-  APPROVED
-  REJECTED
-  ARCHIVED
+enum ProjectStatus {
+  PROPOSAL
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELED
 }

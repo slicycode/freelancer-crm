@@ -3,7 +3,10 @@ import { getDocumentTemplates } from "@/app/actions/document-templates";
 import { getDocuments } from "@/app/actions/documents";
 import { getProjects } from "@/app/actions/projects";
 import { DocumentsView } from "@/components/documents-view";
+import { Button } from "@/components/ui/button";
+import { GraduationCap } from "lucide-react";
 import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Documents - FreelancerCRM",
@@ -27,6 +30,12 @@ export default async function DocumentsPage() {
             Create templates once, generate professional documents instantly
           </p>
         </div>
+        <Link href="/documents/tutorial">
+          <Button variant="outline" className="flex items-center gap-2">
+            <GraduationCap className="h-4 w-4" />
+            View Tutorial
+          </Button>
+        </Link>
       </div>
       <DocumentsView
         documents={documents}

@@ -66,7 +66,7 @@ export interface DocumentTemplate {
 export interface GeneratedDocument {
   templateId: string;
   templateName: string;
-  variableValues: Record<string, any>;
+  variableValues: Record<string, string | number | boolean>;
 }
 
 // Client model
@@ -145,11 +145,30 @@ export interface Document {
   projectName?: string; // For UI display
   templateId?: string | null; // Reference to template if generated from one
   templateName?: string; // For UI display
-  variableValues?: Record<string, any>; // Values used when generating from template
+  variableValues?: Record<string, string | number | boolean>; // Values used when generating from template
   isTemplate?: boolean; // Flag to distinguish templates from documents
   userId: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Document Version model for tracking changes
+export interface DocumentVersion {
+  id: string;
+  versionNumber: number;
+  content: string;
+  variableValues?: Record<string, string | number | boolean> | null;
+  contentHash: string;
+  changeNotes?: string | null;
+  metrics?: {
+    wordCount: number;
+    characterCount: number;
+    estimatedReadTime: number;
+    pageCount: number;
+  } | null;
+  createdBy: string;
+  documentId: string;
+  createdAt: Date;
 }
 
 // Invoice model

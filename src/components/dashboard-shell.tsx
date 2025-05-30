@@ -12,10 +12,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
   return (
     <SidebarProvider defaultOpen={true}>
       <Sidebar />
-      <SidebarInset>
+      <SidebarInset className="h-screen flex flex-col">
         <DashboardHeader />
         <div className="flex flex-1 overflow-hidden">
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1">
             {children}
           </main>
         </div>

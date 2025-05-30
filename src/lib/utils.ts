@@ -34,7 +34,7 @@ export function formatFileSize(bytes: number): string {
 }
 
 // Template variable processor
-export function processTemplateVariables(content: string, variables: Record<string, any>): string {
+export function processTemplateVariables(content: string, variables: Record<string, string | number | boolean>): string {
   let processedContent = content;
   
   // Replace template variables
@@ -50,7 +50,7 @@ export function processTemplateVariables(content: string, variables: Record<stri
 }
 
 // Helper function to generate sample variables for previews
-export function getSampleVariables(): Record<string, any> {
+export function getSampleVariables(): Record<string, string | number | boolean> {
   return {
     // Client variables
     client_name: "Jane Doe",

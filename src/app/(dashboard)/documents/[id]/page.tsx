@@ -6,14 +6,15 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 interface DocumentPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: DocumentPageProps): Promise<Metadata> {
   try {
-    const document = await getDocument(params.id);
+    const resolvedParams = await params;
+    const document = await getDocument(resolvedParams.id);
     return {
       title: `${document.name} - FreelancerCRM`,
       description: `View and edit ${document.name}`,
@@ -28,8 +29,9 @@ export async function generateMetadata({ params }: DocumentPageProps): Promise<M
 
 export default async function DocumentPage({ params }: DocumentPageProps) {
   try {
+    const resolvedParams = await params;
     const [document, clients, projects] = await Promise.all([
-      getDocument(params.id),
+      getDocument(resolvedParams.id),
       getClients(),
       getProjects(),
     ]);
