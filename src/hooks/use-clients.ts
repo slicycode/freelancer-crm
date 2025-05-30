@@ -2,6 +2,7 @@
 
 import { getClients } from "@/app/actions/clients"
 import { getClientCommunications } from "@/app/actions/communications"
+import { getClientProjects } from "@/app/actions/projects"
 import { Client, Communication } from "@/types"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 
@@ -75,12 +76,7 @@ export function useClientCommunications(clientId: string) {
 export function useClientProjects(clientId: string) {
   return useQuery({
     queryKey: ["client-projects", clientId],
-    queryFn: async () => {
-      const response = await fetch(`/api/clients/${clientId}/projects`)
-      if (!response.ok) throw new Error('Failed to fetch projects')
-      const result = await response.json()
-      return result.data || []
-    },
+    queryFn: () => getClientProjects(clientId),
     enabled: !!clientId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes

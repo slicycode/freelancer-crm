@@ -85,9 +85,9 @@ export function ClientSidebarList({ selectedClientId }: ClientSidebarListProps) 
 
   if (error) {
     return (
-      <div className="w-full md:w-72 lg:w-80 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 overflow-y-auto flex-shrink-0 hidden md:block">
+      <div className="w-full md:w-72 lg:w-80 border-r border-border bg-sidebar overflow-y-auto flex-shrink-0 hidden md:block">
         <div className="p-4 text-center">
-          <p className="text-red-500">Failed to load clients</p>
+          <p className="text-destructive">Failed to load clients</p>
           <Button
             variant="outline"
             size="sm"
@@ -120,15 +120,15 @@ export function ClientSidebarList({ selectedClientId }: ClientSidebarListProps) 
   })
 
   return (
-    <div className="w-full md:w-72 lg:w-80 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 overflow-y-auto flex-shrink-0 hidden md:block">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+    <div className="w-full md:w-72 lg:w-80 border-r border-border bg-sidebar overflow-y-auto flex-shrink-0 hidden md:block">
+      <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Clients</h2>
+          <h2 className="text-lg font-semibold text-sidebar-foreground">Clients</h2>
           <NewClientButton />
         </div>
 
         <div className="relative mb-4">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search clients..."
@@ -139,12 +139,12 @@ export function ClientSidebarList({ selectedClientId }: ClientSidebarListProps) 
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500 dark:text-gray-400">{filteredClients.length} client{filteredClients.length === 1 ? "" : "s"}</span>
+          <span className="text-sm text-muted-foreground">{filteredClients.length} client{filteredClients.length === 1 ? "" : "s"}</span>
           <div className="flex items-center gap-2">
             {/* Status Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 gap-1 text-gray-500 dark:text-gray-400">
+                <Button variant="ghost" size="sm" className="h-8 gap-1 text-muted-foreground">
                   <span>{statusFilter === "ALL" ? "All" : statusFilter === "ACTIVE" ? "Active" : "Archived"}</span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
@@ -165,7 +165,7 @@ export function ClientSidebarList({ selectedClientId }: ClientSidebarListProps) 
             {/* Sort Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 gap-1 text-gray-500 dark:text-gray-400">
+                <Button variant="ghost" size="sm" className="h-8 gap-1 text-muted-foreground">
                   <span>Sort by</span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
@@ -183,13 +183,13 @@ export function ClientSidebarList({ selectedClientId }: ClientSidebarListProps) 
         </div>
       </div>
 
-      <div className="divide-y divide-gray-200 dark:divide-gray-700">
+      <div className="divide-y divide-sidebar-border">
         {sortedClients.map((client) => (
           <div
             key={client.id}
             className={cn(
-              "relative group transition-colors hover:bg-gray-100 dark:hover:bg-gray-800",
-              selectedClientId === client.id && "bg-indigo-50 dark:bg-indigo-900/20",
+              "relative group transition-colors hover:bg-sidebar-accent",
+              selectedClientId === client.id && "bg-sidebar-accent",
               client.status === "ARCHIVED" && "opacity-50"
             )}
           >
@@ -199,16 +199,16 @@ export function ClientSidebarList({ selectedClientId }: ClientSidebarListProps) 
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-medium">{client.name}</h3>
+                  <h3 className="font-medium text-sidebar-foreground">{client.name}</h3>
                   {client.status === "ARCHIVED" && (
-                    <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
+                    <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
                       Archived
                     </span>
                   )}
                 </div>
                 <div className="relative">
                   {/* Date - visible by default, hidden on hover */}
-                  <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:opacity-0 transition-opacity">
+                  <span className="text-xs text-muted-foreground group-hover:opacity-0 transition-opacity">
                     {formatDate(client.lastContact || "")}
                   </span>
 
@@ -219,7 +219,7 @@ export function ClientSidebarList({ selectedClientId }: ClientSidebarListProps) 
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
+                          className="h-6 w-6 p-0 hover:bg-accent"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <MoreHorizontal className="h-4 w-4" />
@@ -241,9 +241,9 @@ export function ClientSidebarList({ selectedClientId }: ClientSidebarListProps) 
                             e.stopPropagation();
                             setArchivingClient(client);
                           }}
-                          className={client.status === "ACTIVE" ? "text-red-600 focus:text-red-600" : "text-green-600 focus:text-green-600"}
+                          className={client.status === "ACTIVE" ? "text-destructive focus:text-destructive" : "text-success focus:text-success"}
                         >
-                          <Archive className={`h-4 w-4 ${client.status === "ACTIVE" ? "text-red-600" : "text-green-600"}`} />
+                          <Archive className={`h-4 w-4 ${client.status === "ACTIVE" ? "text-destructive" : "text-success"}`} />
                           {client.status === "ACTIVE" ? "Archive client" : "Unarchive client"}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -251,7 +251,7 @@ export function ClientSidebarList({ selectedClientId }: ClientSidebarListProps) 
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{client.company}</p>
+              <p className="text-sm text-muted-foreground mt-1">{client.company}</p>
               <div className="flex items-center gap-2 mt-2">
                 {client.tags && client.tags.map((tag) => (
                   <span
@@ -302,7 +302,7 @@ export function ClientSidebarList({ selectedClientId }: ClientSidebarListProps) 
             <AlertDialogAction
               onClick={handleArchiveToggle}
               disabled={isArchiving}
-              className={archivingClient?.status === "ACTIVE" ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}
+              className={archivingClient?.status === "ACTIVE" ? "bg-destructive hover:bg-destructive/90" : "bg-success hover:bg-success/90"}
             >
               {isArchiving ?
                 (archivingClient?.status === "ACTIVE" ? "Archiving..." : "Unarchiving...") :

@@ -24,7 +24,7 @@ export function ClientListView({ clients }: ClientListViewProps) {
     <div className="flex-1 p-6 overflow-auto">
       <div className="flex flex-col space-y-4">
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search clients..."
@@ -76,7 +76,7 @@ function ClientGrid({ clients, emptyMessage }: ClientGridProps) {
   if (clients.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">{emptyMessage}</p>
+        <p className="text-muted-foreground">{emptyMessage}</p>
       </div>
     );
   }
@@ -87,29 +87,29 @@ function ClientGrid({ clients, emptyMessage }: ClientGridProps) {
         <Link
           key={client.id}
           href={`/clients/${client.id}`}
-          className="block p-6 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md transition-shadow"
+          className="block p-6 rounded-lg card-elevated hover-lift"
         >
           <h2 className="font-semibold truncate">{client.name}</h2>
           {client.company && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-1">{client.company}</p>
+            <p className="text-sm text-muted-foreground truncate mt-1">{client.company}</p>
           )}
           <div className="flex justify-between items-center mt-4">
             <div className="flex space-x-2">
               {client.tags && client.tags.length > 0 && client.tags.slice(0, 2).map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                  className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
                 >
                   {tag}
                 </span>
               ))}
               {client.tags && client.tags.length > 2 && (
-                <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
                   +{client.tags.length - 2}
                 </span>
               )}
             </div>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-xs text-muted-foreground">
               {formatDate(client.lastContact ?? "")}
             </span>
           </div>

@@ -66,7 +66,7 @@ export function ClientHeader({ client }: ClientHeaderProps) {
   };
 
   return (
-    <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+    <div className="border-b border-border bg-card glass">
       <div className="flex flex-col space-y-4 p-6">
         <div className="flex justify-between items-start">
           <div className="flex items-center space-x-4">
@@ -74,18 +74,18 @@ export function ClientHeader({ client }: ClientHeaderProps) {
               variant="ghost"
               size="icon"
               asChild
-              className="h-8 w-8 rounded-full"
+              className="h-8 w-8 rounded-full shine"
             >
               <Link href="/clients">
                 <ChevronLeft className="h-4 w-4" />
                 <span className="sr-only">Back to clients</span>
               </Link>
             </Button>
-            <h1 className="text-2xl font-bold tracking-tight">{client.name}</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-headline">{client.name}</h1>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-8 w-8 shine">
                 <MoreHorizontal className="h-5 w-5" />
                 <span className="sr-only">More options</span>
               </Button>
@@ -100,7 +100,7 @@ export function ClientHeader({ client }: ClientHeaderProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setIsArchiveDialogOpen(true)}
-                className="text-red-600 dark:text-red-400"
+                variant="destructive"
               >
                 <Archive className="mr-2 h-4 w-4" />
                 <span>Archive Client</span>
@@ -111,16 +111,16 @@ export function ClientHeader({ client }: ClientHeaderProps) {
 
         <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm">
           {client.company && (
-            <div className="text-gray-500 dark:text-gray-400">
+            <div className="text-muted-foreground">
               {client.company}
             </div>
           )}
           {client.email && (
             <div className="flex items-center">
-              <Mail className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
               <a
                 href={`mailto:${client.email}`}
-                className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
+                className="text-primary hover:text-primary/80"
               >
                 {client.email}
               </a>
@@ -128,10 +128,10 @@ export function ClientHeader({ client }: ClientHeaderProps) {
           )}
           {client.phone && (
             <div className="flex items-center">
-              <Phone className="mr-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
               <a
                 href={`tel:${client.phone}`}
-                className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
+                className="text-primary hover:text-primary/80"
               >
                 {client.phone}
               </a>
@@ -141,17 +141,17 @@ export function ClientHeader({ client }: ClientHeaderProps) {
 
         <div className="flex space-x-2">
           <Link href={`/clients/${client.id}/projects`}>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="shine">
               Projects
             </Button>
           </Link>
           <Link href={`/clients/${client.id}/documents`}>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="shine">
               Documents
             </Button>
           </Link>
           <Link href={`/clients/${client.id}/invoices`}>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="shine">
               Invoices
             </Button>
           </Link>
@@ -161,7 +161,7 @@ export function ClientHeader({ client }: ClientHeaderProps) {
       <AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Archive Client</AlertDialogTitle>
             <AlertDialogDescription>
               This will archive the client and hide them from your active clients list. All data will be preserved.
             </AlertDialogDescription>
@@ -171,7 +171,6 @@ export function ClientHeader({ client }: ClientHeaderProps) {
             <AlertDialogAction
               onClick={handleArchive}
               disabled={isArchiving}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
               {isArchiving ? "Archiving..." : "Archive"}
             </AlertDialogAction>

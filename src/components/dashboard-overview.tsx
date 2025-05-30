@@ -39,11 +39,11 @@ export function DashboardOverview({ stats, recentClients, recentCommunications }
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
-            <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalClients}</div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               {stats.totalClients === 0
                 ? "Add your first client to get started"
                 : "Manage all your client relationships"}
@@ -62,11 +62,11 @@ export function DashboardOverview({ stats, recentClients, recentCommunications }
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-            <BarChart4 className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            <BarChart4 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeProjects}</div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               {stats.activeProjects === 0
                 ? "No active projects"
                 : `${stats.activeProjects} project${stats.activeProjects === 1 ? "" : "s"} in progress`}
@@ -85,11 +85,11 @@ export function DashboardOverview({ stats, recentClients, recentCommunications }
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Invoices</CardTitle>
-            <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.pendingInvoices}</div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               {stats.pendingInvoices === 0
                 ? "No pending invoices"
                 : `${stats.pendingInvoices} invoice${stats.pendingInvoices === 1 ? "" : "s"} awaiting payment`}
@@ -108,11 +108,11 @@ export function DashboardOverview({ stats, recentClients, recentCommunications }
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-            <FileCheck className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            <FileCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.recentCommunications}</div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               {stats.recentCommunications === 0
                 ? "No recent communications"
                 : `${stats.recentCommunications} recent communication${stats.recentCommunications === 1 ? "" : "s"}`}
@@ -130,7 +130,7 @@ export function DashboardOverview({ stats, recentClients, recentCommunications }
       </div>
 
       <div className="grid gap-6 mt-6 md:grid-cols-2">
-        <Card className="col-span-1">
+        <Card className="col-span-1 glass">
           <CardHeader>
             <CardTitle>Recent Clients</CardTitle>
             <CardDescription>Your most recently updated clients</CardDescription>
@@ -138,7 +138,7 @@ export function DashboardOverview({ stats, recentClients, recentCommunications }
           <CardContent className="px-2">
             {recentClients.length === 0 ? (
               <div className="text-center py-4">
-                <p className="text-sm text-gray-500 dark:text-gray-400">No clients yet</p>
+                <p className="text-sm text-muted-foreground">No clients yet</p>
                 <Link href="/clients/new" className="mt-2 inline-block">
                   <Button variant="outline" size="sm" className="gap-1 text-xs">
                     <span>Add Your First Client</span>
@@ -150,14 +150,14 @@ export function DashboardOverview({ stats, recentClients, recentCommunications }
               <div className="space-y-2">
                 {recentClients.map((client) => (
                   <Link key={client.id} href={`/clients/${client.id}`}>
-                    <div className="flex items-center justify-between p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <div className="flex items-center justify-between p-2 rounded-md hover:bg-accent hover:text-accent-foreground">
                       <div className="flex-1">
                         <p className="font-medium text-sm">{client.name}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-muted-foreground">
                           {client.company || "No company"}
                         </p>
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-xs text-muted-foreground">
                         {formatTimeAgo(client.lastContact)}
                       </span>
                     </div>
@@ -178,7 +178,7 @@ export function DashboardOverview({ stats, recentClients, recentCommunications }
           )}
         </Card>
 
-        <Card className="col-span-1">
+        <Card className="col-span-1 glass">
           <CardHeader>
             <CardTitle>Recent Communications</CardTitle>
             <CardDescription>Your most recent client interactions</CardDescription>
@@ -186,7 +186,7 @@ export function DashboardOverview({ stats, recentClients, recentCommunications }
           <CardContent className="px-2">
             {recentCommunications.length === 0 ? (
               <div className="text-center py-4">
-                <p className="text-sm text-gray-500 dark:text-gray-400">No communications yet</p>
+                <p className="text-sm text-muted-foreground">No communications yet</p>
                 {recentClients.length > 0 && (
                   <Link href={`/clients/${recentClients[0].id}`} className="mt-2 inline-block">
                     <Button variant="outline" size="sm" className="gap-1 text-xs">
@@ -200,9 +200,13 @@ export function DashboardOverview({ stats, recentClients, recentCommunications }
               <div className="space-y-2">
                 {recentCommunications.map((comm) => (
                   <Link key={comm.id} href={`/clients/${comm.clientId}`}>
-                    <div className="flex gap-3 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <div className="flex gap-3 p-2 rounded-md hover:bg-accent hover:text-accent-foreground">
                       <div className="flex-shrink-0">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${comm.type === "EMAIL" ? "status-bg-primary text-chart-1" :
+                          comm.type === "CALL" ? "status-bg-success text-chart-2" :
+                            comm.type === "MEETING" ? "status-bg-info text-chart-5" :
+                              "status-bg-warning text-chart-3"
+                          }`}>
                           {comm.type === "EMAIL" && <Mail className="h-4 w-4" />}
                           {comm.type === "CALL" && <Phone className="h-4 w-4" />}
                           {comm.type === "MEETING" && <Video className="h-4 w-4" />}
@@ -212,11 +216,11 @@ export function DashboardOverview({ stats, recentClients, recentCommunications }
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
                           <p className="font-medium text-sm truncate">{comm.subject}</p>
-                          <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap ml-2">
+                          <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
                             {formatTimeAgo(comm.sentAt)}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-muted-foreground">
                           {comm.clientName} {comm.projectName ? `(${comm.projectName})` : ""}
                         </p>
                       </div>

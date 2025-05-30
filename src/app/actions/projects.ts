@@ -273,7 +273,7 @@ export async function deleteProject(projectId: string): Promise<void> {
   }
 }
 
-export async function getClientProjects(clientId: string): Promise<{ id: string; name: string }[]> {
+export async function getClientProjects(clientId: string): Promise<Project[]> {
   try {
     const { userId } = await auth();
     
@@ -302,19 +302,48 @@ export async function getClientProjects(clientId: string): Promise<{ id: string;
       throw new Error("Client not found or access denied");
     }
 
-    // Fetch the client's projects
+    // Fetch projects for this specific client
     const projects = await prisma.project.findMany({
-      where: {
-        clientId,
-        userId: user.id,
+      where: { 
+        clientId: clientId,
+        userId: user.id 
       },
-      select: {
-        id: true,
-        name: true,
+      orderBy: { updatedAt: "desc" },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+            company: true,
+          }
+        },
+        communications: {
+          orderBy: { sentAt: "desc" },
+          take: 1,
+        },
+        _count: {
+          select: { communications: true }
+        },
       },
     });
 
-    return projects;
+    // Transform projects to match the UI expected format
+    return projects.map(project => ({
+      id: project.id,
+      name: project.name,
+      description: project.description,
+      status: project.status,
+      startDate: project.startDate,
+      endDate: project.endDate,
+      clientId: project.clientId,
+      clientName: project.client.name,
+      clientCompany: project.client.company,
+      lastActivity: project.communications[0]?.sentAt || project.updatedAt,
+      communicationCount: project._count.communications,
+      userId: project.userId,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+    }));
 
   } catch (error) {
     console.error("Error fetching client projects:", error);

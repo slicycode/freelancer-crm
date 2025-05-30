@@ -85,7 +85,7 @@ export function CalendarView({ events }: CalendarViewProps) {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl">
+                <CardTitle className="text-2xl text-headline">
                   {monthNames[month]} {year}
                 </CardTitle>
                 <div className="flex space-x-2">
@@ -116,7 +116,7 @@ export function CalendarView({ events }: CalendarViewProps) {
             <CardContent>
               <div className="grid grid-cols-7 gap-1 mb-4">
                 {dayNames.map(day => (
-                  <div key={day} className="p-2 text-center text-sm font-medium text-gray-500 dark:text-gray-400">
+                  <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
                     {day}
                   </div>
                 ))}
@@ -125,12 +125,12 @@ export function CalendarView({ events }: CalendarViewProps) {
                 {calendarDays.map((day, index) => (
                   <div
                     key={index}
-                    className={`min-h-[100px] p-2 border border-gray-200 dark:border-gray-700 ${day ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900'
-                      } ${isToday(day || 0) ? 'ring-2 ring-blue-500' : ''}`}
+                    className={`min-h-[100px] p-2 border border-border transition-all duration-200 ${day ? 'bg-card hover:bg-accent/50' : 'bg-muted'
+                      } ${isToday(day || 0) ? 'ring-2 ring-primary animate-glow' : ''} ${day && getEventsForDay(day).length > 0 ? 'shine' : ''}`}
                   >
                     {day && (
                       <>
-                        <div className={`text-sm font-medium mb-1 ${isToday(day) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'
+                        <div className={`text-sm font-medium mb-1 ${isToday(day) ? 'text-primary' : 'text-foreground'
                           }`}>
                           {day}
                         </div>
@@ -138,14 +138,14 @@ export function CalendarView({ events }: CalendarViewProps) {
                           {getEventsForDay(day).slice(0, 3).map(event => (
                             <div
                               key={event.id}
-                              className="text-xs p-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 truncate"
+                              className="text-xs p-1 rounded status-bg-primary text-chart-1 truncate hover:scale-105 transition-transform cursor-pointer"
                               title={event.title}
                             >
                               {event.allDay ? event.title : `${formatTime(event.startTime)} ${event.title}`}
                             </div>
                           ))}
                           {getEventsForDay(day).length > 3 && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                            <div className="text-xs text-muted-foreground">
                               +{getEventsForDay(day).length - 3} more
                             </div>
                           )}
@@ -161,9 +161,9 @@ export function CalendarView({ events }: CalendarViewProps) {
 
         {/* Upcoming Events Sidebar */}
         <div className="lg:col-span-1">
-          <Card>
+          <Card className="glass">
             <CardHeader>
-              <CardTitle>Upcoming Events</CardTitle>
+              <CardTitle className="text-headline">Upcoming Events</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -172,9 +172,9 @@ export function CalendarView({ events }: CalendarViewProps) {
                   .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
                   .slice(0, 10)
                   .map(event => (
-                    <div key={event.id} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div key={event.id} className="p-3 rounded-lg card-elevated hover-lift">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-medium text-sm truncate flex-1">{event.title}</h3>
+                        <h3 className="font-medium text-sm truncate flex-1 text-headline">{event.title}</h3>
                         {event.allDay && (
                           <Badge variant="secondary" className="text-xs ml-2">
                             All Day
@@ -183,12 +183,12 @@ export function CalendarView({ events }: CalendarViewProps) {
                       </div>
 
                       {event.description && (
-                        <p className="text-xs text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
+                        <p className="text-xs text-body mb-2 line-clamp-2">
                           {event.description}
                         </p>
                       )}
 
-                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      <div className="flex items-center text-xs text-muted-foreground mb-1">
                         <Clock className="h-3 w-3 mr-1" />
                         <span>
                           {event.allDay
@@ -199,14 +199,14 @@ export function CalendarView({ events }: CalendarViewProps) {
                       </div>
 
                       {event.clientName && (
-                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        <div className="flex items-center text-xs text-muted-foreground mb-1">
                           <User className="h-3 w-3 mr-1" />
                           <span className="truncate">{event.clientName}</span>
                         </div>
                       )}
 
                       {event.projectName && (
-                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center text-xs text-muted-foreground">
                           <FolderOpen className="h-3 w-3 mr-1" />
                           <span className="truncate">{event.projectName}</span>
                         </div>
@@ -214,7 +214,7 @@ export function CalendarView({ events }: CalendarViewProps) {
                     </div>
                   ))}
                 {events.filter(event => new Date(event.startTime) >= today).length === 0 && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                  <p className="text-sm text-muted-foreground text-center py-4">
                     No upcoming events
                   </p>
                 )}

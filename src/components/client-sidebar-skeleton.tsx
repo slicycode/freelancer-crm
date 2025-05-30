@@ -12,15 +12,15 @@ interface ClientSidebarSkeletonProps {
 
 export function ClientSidebarSkeleton({ count = 5 }: ClientSidebarSkeletonProps) {
   return (
-    <div className="w-full md:w-72 lg:w-80 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 overflow-y-auto flex-shrink-0 hidden md:block">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+    <div className="w-full md:w-72 lg:w-80 border-r border-border bg-sidebar overflow-y-auto flex-shrink-0 hidden md:block">
+      <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Clients</h2>
+          <h2 className="text-lg font-semibold text-sidebar-foreground">Clients</h2>
           <NewClientButton />
         </div>
 
         <div className="relative mb-4">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search clients..."
@@ -31,14 +31,14 @@ export function ClientSidebarSkeleton({ count = 5 }: ClientSidebarSkeletonProps)
 
         <div className="flex items-center justify-between">
           <Skeleton className="h-4 w-16" />
-          <Button variant="ghost" size="sm" className="h-8 gap-1 text-gray-500 dark:text-gray-400" disabled>
+          <Button variant="ghost" size="sm" className="h-8 gap-1 text-muted-foreground" disabled>
             <span>Sort by</span>
             <ChevronDown className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      <div className="divide-y divide-gray-200 dark:divide-gray-700">
+      <div className="divide-y divide-sidebar-border">
         {Array.from({ length: count }).map((_, index) => (
           <div
             key={index}

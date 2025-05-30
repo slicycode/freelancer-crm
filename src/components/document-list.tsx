@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Document, DocumentStatus, DocumentType } from "@/types";
-import { Calendar, Download, FileText, FolderOpen, Search, User } from "lucide-react";
+import { Calendar, FileText, Search, User } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 interface DocumentListViewProps {
@@ -17,56 +18,82 @@ export function DocumentListView({ documents }: DocumentListViewProps) {
 
   const filteredDocuments = documents.filter(document =>
     document.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (document.clientName && document.clientName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (document.projectName && document.projectName.toLowerCase().includes(searchQuery.toLowerCase()))
+    (document.clientName && document.clientName.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const getTypeColor = (type: DocumentType) => {
     switch (type) {
       case "PROPOSAL":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+        return "status-info";
       case "CONTRACT":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+        return "status-success";
       case "INVOICE":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400";
+        return "status-warning";
       case "REPORT":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400";
+        return "bg-chart-4/10 text-chart-4";
       case "OTHER":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400";
+        return "bg-secondary text-secondary-foreground";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400";
+        return "bg-secondary text-secondary-foreground";
     }
   };
 
   const getStatusColor = (status: DocumentStatus) => {
     switch (status) {
       case "DRAFT":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400";
+        return "bg-secondary text-secondary-foreground";
       case "SENT":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+        return "status-info";
       case "APPROVED":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+        return "status-success";
       case "REJECTED":
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+        return "status-error";
       case "ARCHIVED":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
+        return "bg-secondary text-secondary-foreground";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400";
+        return "bg-secondary text-secondary-foreground";
     }
   };
 
-  const formatFileSize = (bytes: number | null) => {
-    if (!bytes) return "N/A";
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + " " + sizes[i];
+  const getTypeLabel = (type: DocumentType) => {
+    switch (type) {
+      case "PROPOSAL":
+        return "Proposal";
+      case "CONTRACT":
+        return "Contract";
+      case "INVOICE":
+        return "Invoice";
+      case "REPORT":
+        return "Report";
+      case "OTHER":
+        return "Other";
+      default:
+        return type;
+    }
+  };
+
+  const getStatusLabel = (status: DocumentStatus) => {
+    switch (status) {
+      case "DRAFT":
+        return "Draft";
+      case "SENT":
+        return "Sent";
+      case "APPROVED":
+        return "Approved";
+      case "REJECTED":
+        return "Rejected";
+      case "ARCHIVED":
+        return "Archived";
+      default:
+        return status;
+    }
   };
 
   return (
-    <div className="flex-1 p-6 overflow-auto">
-      <div className="flex flex-col space-y-4">
+    <div className="flex-1 overflow-auto">
+      <div className="flex flex-col space-y-4 p-6">
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search documents..."
@@ -79,16 +106,16 @@ export function DocumentListView({ documents }: DocumentListViewProps) {
         <Tabs defaultValue="all" value={tab} onValueChange={setTab}>
           <TabsList>
             <TabsTrigger value="all">All Documents</TabsTrigger>
-            <TabsTrigger value="proposals">Proposals</TabsTrigger>
-            <TabsTrigger value="contracts">Contracts</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
+            <TabsTrigger value="draft">Drafts</TabsTrigger>
+            <TabsTrigger value="sent">Sent</TabsTrigger>
           </TabsList>
           <TabsContent value="all" className="mt-4">
             <DocumentGrid
               documents={filteredDocuments}
               getTypeColor={getTypeColor}
               getStatusColor={getStatusColor}
-              formatFileSize={formatFileSize}
+              getTypeLabel={getTypeLabel}
+              getStatusLabel={getStatusLabel}
               emptyMessage={
                 searchQuery
                   ? "No documents match your search"
@@ -96,42 +123,31 @@ export function DocumentListView({ documents }: DocumentListViewProps) {
               }
             />
           </TabsContent>
-          <TabsContent value="proposals" className="mt-4">
+          <TabsContent value="draft" className="mt-4">
             <DocumentGrid
-              documents={filteredDocuments.filter(d => d.type === "PROPOSAL")}
+              documents={filteredDocuments.filter(d => d.status === "DRAFT")}
               getTypeColor={getTypeColor}
               getStatusColor={getStatusColor}
-              formatFileSize={formatFileSize}
+              getTypeLabel={getTypeLabel}
+              getStatusLabel={getStatusLabel}
               emptyMessage={
                 searchQuery
-                  ? "No proposals match your search"
-                  : "No proposals yet."
+                  ? "No draft documents match your search"
+                  : "No draft documents."
               }
             />
           </TabsContent>
-          <TabsContent value="contracts" className="mt-4">
+          <TabsContent value="sent" className="mt-4">
             <DocumentGrid
-              documents={filteredDocuments.filter(d => d.type === "CONTRACT")}
+              documents={filteredDocuments.filter(d => d.status === "SENT")}
               getTypeColor={getTypeColor}
               getStatusColor={getStatusColor}
-              formatFileSize={formatFileSize}
+              getTypeLabel={getTypeLabel}
+              getStatusLabel={getStatusLabel}
               emptyMessage={
                 searchQuery
-                  ? "No contracts match your search"
-                  : "No contracts yet."
-              }
-            />
-          </TabsContent>
-          <TabsContent value="reports" className="mt-4">
-            <DocumentGrid
-              documents={filteredDocuments.filter(d => d.type === "REPORT")}
-              getTypeColor={getTypeColor}
-              getStatusColor={getStatusColor}
-              formatFileSize={formatFileSize}
-              emptyMessage={
-                searchQuery
-                  ? "No reports match your search"
-                  : "No reports yet."
+                  ? "No sent documents match your search"
+                  : "No sent documents."
               }
             />
           </TabsContent>
@@ -145,15 +161,23 @@ interface DocumentGridProps {
   documents: Document[];
   getTypeColor: (type: DocumentType) => string;
   getStatusColor: (status: DocumentStatus) => string;
-  formatFileSize: (bytes: number | null) => string;
+  getTypeLabel: (type: DocumentType) => string;
+  getStatusLabel: (status: DocumentStatus) => string;
   emptyMessage: string;
 }
 
-function DocumentGrid({ documents, getTypeColor, getStatusColor, formatFileSize, emptyMessage }: DocumentGridProps) {
+function DocumentGrid({
+  documents,
+  getTypeColor,
+  getStatusColor,
+  getTypeLabel,
+  getStatusLabel,
+  emptyMessage
+}: DocumentGridProps) {
   if (documents.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">{emptyMessage}</p>
+        <p className="text-muted-foreground">{emptyMessage}</p>
       </div>
     );
   }
@@ -161,57 +185,60 @@ function DocumentGrid({ documents, getTypeColor, getStatusColor, formatFileSize,
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {documents.map((document) => (
-        <div
+        <Link
           key={document.id}
-          className="p-6 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md transition-shadow"
+          href={`/documents/${document.id}`}
+          className="block p-6 rounded-lg card-elevated hover-lift shine"
         >
           <div className="flex justify-between items-start mb-3">
-            <div className="flex items-center space-x-2 flex-1 min-w-0">
-              <FileText className="h-5 w-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-              <h2 className="font-semibold truncate">{document.name}</h2>
+            <div className="flex items-center gap-2 flex-1 mr-2">
+              <div className={`p-1 rounded ${document.type === "PROPOSAL" ? "status-bg-primary" :
+                document.type === "CONTRACT" ? "status-bg-success" :
+                  document.type === "INVOICE" ? "status-bg-warning" :
+                    document.type === "REPORT" ? "status-bg-info" :
+                      "bg-secondary"
+                }`}>
+                <FileText className={`h-4 w-4 ${document.type === "PROPOSAL" ? "text-chart-1" :
+                  document.type === "CONTRACT" ? "text-chart-2" :
+                    document.type === "INVOICE" ? "text-chart-3" :
+                      document.type === "REPORT" ? "text-chart-5" :
+                        "text-secondary-foreground"
+                  }`} />
+              </div>
+              <h2 className="font-semibold truncate text-headline">{document.name}</h2>
             </div>
-            {document.url && (
-              <a
-                href={document.url}
-                download
-                className="ml-2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <Download className="h-4 w-4" />
-              </a>
-            )}
+            <div className="flex flex-col gap-1">
+              <Badge className={`text-xs ${getTypeColor(document.type)}`}>
+                {getTypeLabel(document.type)}
+              </Badge>
+              <Badge className={`text-xs ${getStatusColor(document.status)}`}>
+                {getStatusLabel(document.status)}
+              </Badge>
+            </div>
           </div>
 
-          <div className="flex space-x-2 mb-3">
-            <Badge className={`text-xs ${getTypeColor(document.type)}`}>
-              {document.type}
-            </Badge>
-            <Badge className={`text-xs ${getStatusColor(document.status)}`}>
-              {document.status}
-            </Badge>
+          <div className="flex items-center text-sm text-muted-foreground mb-3">
+            <User className="h-4 w-4 mr-1" />
+            <span className="truncate">
+              {document.clientName || "No client"}
+              {document.projectName && ` • ${document.projectName}`}
+            </span>
           </div>
 
-          {document.clientName && (
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
-              <User className="h-4 w-4 mr-1" />
-              <span className="truncate">{document.clientName}</span>
-            </div>
-          )}
-
-          {document.projectName && (
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
-              <FolderOpen className="h-4 w-4 mr-1" />
-              <span className="truncate">{document.projectName}</span>
-            </div>
-          )}
-
-          <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex justify-between items-center text-xs text-muted-foreground">
             <div className="flex items-center">
               <Calendar className="h-3 w-3 mr-1" />
-              <span>{formatDate(document.updatedAt.toString())}</span>
+              <span>
+                {formatDate(document.updatedAt.toString())}
+              </span>
             </div>
-            <span>{formatFileSize(document.size ?? null)}</span>
+            {document.size && (
+              <span>
+                {formatFileSize(document.size)}
+              </span>
+            )}
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );
@@ -231,4 +258,12 @@ function formatDate(dateString: string): string {
   } else {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   }
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 } 

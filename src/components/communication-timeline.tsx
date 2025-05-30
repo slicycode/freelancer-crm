@@ -39,10 +39,10 @@ export function CommunicationTimeline({ client, communications, projects = [] }:
     <div className={cn(isArchived && "opacity-50 pointer-events-none")}>
       {/* Archived Client Notice */}
       {isArchived && (
-        <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+        <div className="mb-6 p-4 glass border border-warning/20 rounded-lg">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-            <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
+            <div className="w-2 h-2 bg-warning rounded-full animate-glow"></div>
+            <p className="text-sm text-warning-foreground font-medium">
               This client has been archived. Communications are read-only.
             </p>
           </div>
@@ -52,14 +52,14 @@ export function CommunicationTimeline({ client, communications, projects = [] }:
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">{client.name}</h1>
+            <h1 className="text-2xl font-bold text-headline">{client.name}</h1>
             {isArchived && (
-              <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-3 py-1 text-sm font-medium text-gray-600 dark:text-gray-400">
+              <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
                 Archived
               </span>
             )}
           </div>
-          <p className="text-gray-500 dark:text-gray-400">{client.company}</p>
+          <p className="text-muted-foreground">{client.company}</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -96,7 +96,7 @@ export function CommunicationTimeline({ client, communications, projects = [] }:
       <div className="space-y-4">
         {filteredCommunications.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">No communications found</p>
+            <p className="text-muted-foreground">No communications found</p>
           </div>
         ) : (
           filteredCommunications.map((communication) => (
@@ -143,19 +143,17 @@ function CommunicationItem({ communication, clientId, projects = [], isArchived 
   return (
     <>
       <div className={cn(
-        "flex gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-shadow",
-        !isArchived && "hover:shadow-sm"
+        "flex gap-4 p-4 rounded-lg card-elevated transition-shadow",
+        !isArchived && "hover-lift shine"
       )}>
         <div className="flex-shrink-0">
           <div
             className={cn(
               "w-10 h-10 rounded-full flex items-center justify-center",
-              communication.type === "EMAIL" &&
-              "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400",
-              communication.type === "CALL" && "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400",
-              communication.type === "MEETING" &&
-              "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400",
-              communication.type === "NOTE" && "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400",
+              communication.type === "EMAIL" && "status-bg-primary text-chart-1",
+              communication.type === "CALL" && "status-bg-success text-chart-2",
+              communication.type === "MEETING" && "status-bg-info text-chart-5",
+              communication.type === "NOTE" && "status-bg-warning text-chart-3",
             )}
           >
             {communication.type === "EMAIL" && <Mail className="h-5 w-5" />}
@@ -168,16 +166,16 @@ function CommunicationItem({ communication, clientId, projects = [], isArchived 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-medium truncate">{communication.subject}</h3>
+              <h3 className="font-medium truncate text-headline">{communication.subject}</h3>
               {communication.projectTag && (
-                <span className="inline-flex items-center rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-medium text-teal-800 dark:bg-teal-900/30 dark:text-teal-300">
+                <span className="inline-flex items-center rounded-full status-bg-info px-2.5 py-0.5 text-xs font-medium text-chart-5">
                   {communication.projectTag}
                 </span>
               )}
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">{formatDateTime(communication.sentAt)}</span>
+              <span className="text-sm text-muted-foreground">{formatDateTime(communication.sentAt.toISOString())}</span>
               {!isArchived && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -191,8 +189,8 @@ function CommunicationItem({ communication, clientId, projects = [], isArchived 
                       <Edit className="h-4 w-4" />
                       Edit
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-red-600 focus:text-red-600">
-                      <Trash2 className="h-4 w-4 text-red-600" />
+                    <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} variant="destructive">
+                      <Trash2 className="h-4 w-4" />
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -201,11 +199,11 @@ function CommunicationItem({ communication, clientId, projects = [], isArchived 
             </div>
           </div>
 
-          <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-2">{communication.content}</p>
+          <p className="text-body text-sm line-clamp-2 mb-2">{communication.content}</p>
 
           {communication.attachments && communication.attachments.length > 0 && (
             <div className="flex items-center gap-2 mt-2">
-              <Paperclip className="h-4 w-4 text-gray-400" />
+              <Paperclip className="h-4 w-4 text-muted-foreground" />
               <div className="flex flex-wrap gap-2">
                 {communication.attachments.map((attachment) => (
                   <TooltipProvider key={attachment.id}>
@@ -215,14 +213,13 @@ function CommunicationItem({ communication, clientId, projects = [], isArchived 
                           href={attachment.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 underline underline-offset-2"
+                          className="text-xs text-primary hover:text-primary/80 underline underline-offset-2"
                         >
-                          {attachment.name.length > 20 ? `${attachment.name.substring(0, 20)}...` : attachment.name}
+                          {attachment.name}
                         </a>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{attachment.name}</p>
-                        <p className="text-xs text-gray-500">{formatFileSize(attachment.size)}</p>
+                        <p className="text-xs text-muted-foreground">{formatFileSize(attachment.size)}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -233,67 +230,49 @@ function CommunicationItem({ communication, clientId, projects = [], isArchived 
         </div>
       </div>
 
-      {/* Edit Communication Dialog - Only for non-archived clients */}
-      {!isArchived && (
-        <EditCommunicationDialog
-          communication={communication}
-          clientId={clientId}
-          projects={projects}
-          isOpen={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-        />
-      )}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Communication</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this communication? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      {/* Delete Communication Dialog - Only for non-archived clients */}
-      {!isArchived && (
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will permanently delete this communication. This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-              >
-                {isDeleting ? "Deleting..." : "Delete"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
+      <EditCommunicationDialog
+        communication={communication}
+        clientId={clientId}
+        projects={projects}
+        isOpen={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+      />
     </>
   )
 }
 
-function formatDateTime(dateString: string | Date): string {
+function formatDateTime(dateString: string): string {
   const date = new Date(dateString)
-  const now = new Date()
-  const isToday = date.toDateString() === now.toDateString()
-
-  if (isToday) {
-    return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
-  } else {
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    })
-  }
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  })
 }
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return "0 Bytes"
-
   const k = 1024
-  const sizes = ["Bytes", "KB", "MB", "GB", "TB"]
+  const sizes = ["Bytes", "KB", "MB", "GB"]
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
 }

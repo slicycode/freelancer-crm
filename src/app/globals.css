@@ -44,114 +44,159 @@
 }
 
 :root {
-  --radius: 0.75rem;
-  /* Light theme - Modern vibrant palette inspired by Dribbble designs */
-  --background: oklch(0.99 0.005 240);
-  --foreground: oklch(0.15 0.02 240);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.02 240);
+  --radius: 0.875rem;
+  
+  /* Premium Light Theme - Inspired by luxury fintech apps */
+  
+  /* Base surfaces - Warm pearl whites with subtle depth */
+  --background: oklch(0.998 0.002 60); /* Warm pearl white */
+  --foreground: oklch(0.09 0.01 240); /* Rich charcoal navy */
+  
+  /* Elevated surfaces - Sophisticated layering */
+  --card: oklch(1 0 0); /* Pure white for maximum contrast */
+  --card-foreground: oklch(0.09 0.01 240);
+  
+  /* Popover surfaces */
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.02 240);
-  /* Primary - Modern purple/indigo gradient inspired */
-  --primary: oklch(0.55 0.18 270);
-  --primary-foreground: oklch(0.98 0.01 270);
-  /* Secondary - Soft blue accent */
-  --secondary: oklch(0.96 0.02 240);
-  --secondary-foreground: oklch(0.25 0.05 240);
-  /* Muted - Warmer grays */
-  --muted: oklch(0.97 0.01 240);
-  --muted-foreground: oklch(0.45 0.02 240);
-  /* Accent - Vibrant blue */
-  --accent: oklch(0.94 0.05 240);
-  --accent-foreground: oklch(0.25 0.08 240);
-  /* Success green */
-  --success: oklch(0.65 0.15 150);
-  --success-foreground: oklch(0.98 0.01 150);
-  /* Warning orange */
-  --warning: oklch(0.75 0.15 60);
-  --warning-foreground: oklch(0.15 0.02 60);
-  /* Destructive - Modern red */
-  --destructive: oklch(0.65 0.2 25);
-  --destructive-foreground: oklch(0.98 0.01 25);
-  /* Borders and inputs */
-  --border: oklch(0.92 0.01 240);
-  --input: oklch(0.95 0.01 240);
-  --ring: oklch(0.55 0.18 270);
-  /* Chart colors - More vibrant and distinct */
-  --chart-1: oklch(0.6 0.2 270); /* Purple */
-  --chart-2: oklch(0.65 0.18 200); /* Blue */
-  --chart-3: oklch(0.7 0.15 150); /* Green */
-  --chart-4: oklch(0.75 0.15 60); /* Orange */
-  --chart-5: oklch(0.65 0.2 320); /* Pink */
-  /* Sidebar - Light theme with subtle contrast */
-  --sidebar: oklch(0.98 0.005 240);
-  --sidebar-foreground: oklch(0.15 0.02 240);
-  --sidebar-primary: oklch(0.55 0.18 270);
-  --sidebar-primary-foreground: oklch(0.98 0.01 270);
-  --sidebar-accent: oklch(0.94 0.02 240);
-  --sidebar-accent-foreground: oklch(0.25 0.05 240);
-  --sidebar-border: oklch(0.9 0.01 240);
-  --sidebar-ring: oklch(0.55 0.18 270);
+  --popover-foreground: oklch(0.09 0.01 240);
+  
+  /* Primary - Sophisticated slate with purple undertones */
+  --primary: oklch(0.45 0.08 270); /* Deep slate purple */
+  --primary-foreground: oklch(0.98 0.005 270);
+  
+  /* Secondary - Elevated warm neutrals */
+  --secondary: oklch(0.975 0.003 45); /* Warm pearl */
+  --secondary-foreground: oklch(0.35 0.015 240);
+  
+  /* Muted - Sophisticated warm grays */
+  --muted: oklch(0.97 0.004 45); /* Subtle warm tint */
+  --muted-foreground: oklch(0.52 0.008 240); /* Refined mid-gray */
+  
+  /* Accent - Subtle interaction states */
+  --accent: oklch(0.965 0.006 45); /* Barely perceptible warmth */
+  --accent-foreground: oklch(0.3 0.02 240);
+  
+  /* Status colors - Refined and sophisticated */
+  --success: oklch(0.58 0.12 145); /* Refined emerald */
+  --success-foreground: oklch(0.98 0.003 145);
+  
+  --warning: oklch(0.68 0.11 50); /* Sophisticated amber */
+  --warning-foreground: oklch(0.12 0.008 50);
+  
+  --destructive: oklch(0.54 0.15 15); /* Refined crimson */
+  --destructive-foreground: oklch(0.98 0.003 15);
+  
+  /* Interactive elements */
+  --border: oklch(0.92 0.004 45); /* Warm subtle borders */
+  --input: oklch(0.985 0.002 45); /* Barely visible backgrounds */
+  --ring: oklch(0.45 0.08 270); /* Matches primary */
+  
+  /* Chart colors - Sophisticated data visualization palette */
+  --chart-1: oklch(0.45 0.08 270); /* Primary slate purple */
+  --chart-2: oklch(0.58 0.12 145); /* Success emerald */
+  --chart-3: oklch(0.68 0.11 50); /* Warning amber */
+  --chart-4: oklch(0.55 0.12 300); /* Elegant magenta */
+  --chart-5: oklch(0.52 0.1 190); /* Sophisticated teal */
+  
+  /* Sidebar - Premium elevated surface */
+  --sidebar: oklch(0.995 0.003 45); /* Subtly warmer than background */
+  --sidebar-foreground: oklch(0.09 0.01 240);
+  --sidebar-primary: oklch(0.45 0.08 270);
+  --sidebar-primary-foreground: oklch(0.98 0.005 270);
+  --sidebar-accent: oklch(0.96 0.006 45); /* Gentle hover state */
+  --sidebar-accent-foreground: oklch(0.25 0.02 240);
+  --sidebar-border: oklch(0.915 0.005 45); /* Refined separation */
+  --sidebar-ring: oklch(0.45 0.08 270);
 }
 
 .dark {
-  /* Dark theme - Enhanced with better contrast and modern colors */
-  --background: oklch(0.08 0.01 270);
-  --foreground: oklch(0.95 0.01 270);
-  --card: oklch(0.12 0.02 270);
-  --card-foreground: oklch(0.95 0.01 270);
-  --popover: oklch(0.12 0.02 270);
-  --popover-foreground: oklch(0.95 0.01 270);
-  /* Primary - Brighter in dark mode */
-  --primary: oklch(0.7 0.2 270);
-  --primary-foreground: oklch(0.08 0.01 270);
-  /* Secondary */
-  --secondary: oklch(0.15 0.02 270);
-  --secondary-foreground: oklch(0.9 0.02 270);
-  /* Muted */
-  --muted: oklch(0.15 0.02 270);
-  --muted-foreground: oklch(0.6 0.02 270);
-  /* Accent */
-  --accent: oklch(0.18 0.03 270);
-  --accent-foreground: oklch(0.85 0.05 240);
-  /* Success, Warning, Destructive - Adjusted for dark mode */
-  --success: oklch(0.7 0.15 150);
-  --success-foreground: oklch(0.08 0.01 150);
-  --warning: oklch(0.8 0.15 60);
-  --warning-foreground: oklch(0.08 0.01 60);
-  --destructive: oklch(0.7 0.2 25);
-  --destructive-foreground: oklch(0.95 0.01 25);
-  /* Borders and inputs */
-  --border: oklch(0.2 0.02 270);
-  --input: oklch(0.18 0.02 270);
-  --ring: oklch(0.7 0.2 270);
-  /* Chart colors - Vibrant for dark mode */
-  --chart-1: oklch(0.7 0.2 270); /* Purple */
-  --chart-2: oklch(0.75 0.18 200); /* Blue */
-  --chart-3: oklch(0.8 0.15 150); /* Green */
-  --chart-4: oklch(0.85 0.15 60); /* Orange */
-  --chart-5: oklch(0.75 0.2 320); /* Pink */
-  /* Sidebar - Even darker with better contrast */
-  --sidebar: oklch(0.06 0.01 270);
-  --sidebar-foreground: oklch(0.9 0.02 270);
-  --sidebar-primary: oklch(0.7 0.2 270);
-  --sidebar-primary-foreground: oklch(0.06 0.01 270);
-  --sidebar-accent: oklch(0.12 0.02 270);
-  --sidebar-accent-foreground: oklch(0.95 0.02 270);
-  --sidebar-border: oklch(0.15 0.02 270);
-  --sidebar-ring: oklch(0.7 0.2 270);
+  /* Premium Dark Theme - Inspired by luxury fintech and design tools */
+  
+  /* Base surfaces - Rich warm blacks with depth */
+  --background: oklch(0.04 0.005 240); /* Deep navy black */
+  --foreground: oklch(0.96 0.005 60); /* Warm crisp white */
+  
+  /* Elevated surfaces - Sophisticated layering */
+  --card: oklch(0.06 0.008 240); /* Elevated warm charcoal */
+  --card-foreground: oklch(0.96 0.005 60);
+  
+  /* Popover surfaces */
+  --popover: oklch(0.06 0.008 240);
+  --popover-foreground: oklch(0.96 0.005 60);
+  
+  /* Primary - Brighter and more vibrant for dark backgrounds */
+  --primary: oklch(0.72 0.12 270); /* Luminous slate purple */
+  --primary-foreground: oklch(0.04 0.005 240);
+  
+  /* Secondary - Rich elevated charcoal */
+  --secondary: oklch(0.10 0.012 240); /* Warm dark gray */
+  --secondary-foreground: oklch(0.86 0.008 60);
+  
+  /* Muted - Sophisticated dark mid-tones */
+  --muted: oklch(0.10 0.012 240); /* Consistent with secondary */
+  --muted-foreground: oklch(0.65 0.008 240); /* Refined light gray */
+  
+  /* Accent - Subtle dark interaction states */
+  --accent: oklch(0.12 0.015 240); /* Gentle elevation */
+  --accent-foreground: oklch(0.82 0.01 60);
+  
+  /* Status colors - Optimized for dark backgrounds */
+  --success: oklch(0.68 0.14 145); /* Vibrant emerald */
+  --success-foreground: oklch(0.04 0.005 145);
+  
+  --warning: oklch(0.75 0.13 50); /* Bright amber */
+  --warning-foreground: oklch(0.04 0.005 50);
+  
+  --destructive: oklch(0.64 0.17 15); /* Vibrant crimson */
+  --destructive-foreground: oklch(0.96 0.005 15);
+  
+  /* Interactive elements */
+  --border: oklch(0.16 0.012 240); /* Visible but gentle */
+  --input: oklch(0.08 0.01 240); /* Subtle input backgrounds */
+  --ring: oklch(0.72 0.12 270); /* Matches primary */
+  
+  /* Chart colors - Optimized for dark visualization */
+  --chart-1: oklch(0.72 0.12 270); /* Primary slate purple */
+  --chart-2: oklch(0.68 0.14 145); /* Success emerald */
+  --chart-3: oklch(0.75 0.13 50); /* Warning amber */
+  --chart-4: oklch(0.65 0.14 300); /* Vibrant magenta */
+  --chart-5: oklch(0.62 0.12 190); /* Bright teal */
+  
+  /* Sidebar - Deepest surface for hierarchy */
+  --sidebar: oklch(0.035 0.005 240); /* Darker than background */
+  --sidebar-foreground: oklch(0.88 0.008 60);
+  --sidebar-primary: oklch(0.72 0.12 270);
+  --sidebar-primary-foreground: oklch(0.035 0.005 240);
+  --sidebar-accent: oklch(0.065 0.01 240); /* Subtle hover */
+  --sidebar-accent-foreground: oklch(0.92 0.008 60);
+  --sidebar-border: oklch(0.12 0.012 240); /* Refined separation */
+  --sidebar-ring: oklch(0.72 0.12 270);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Premium text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Subtle texture for premium feel */
+    background-image: 
+      radial-gradient(circle at 1px 1px, oklch(0.5 0.01 240 / 0.05) 1px, transparent 0);
+    background-size: 24px 24px;
   }
   
-  /* Enhanced scrollbar styling */
+  .dark body {
+    background-image: 
+      radial-gradient(circle at 1px 1px, oklch(0.5 0.02 240 / 0.08) 1px, transparent 0);
+  }
+  
+  /* Premium scrollbar styling */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -159,49 +204,306 @@
   
   ::-webkit-scrollbar-track {
     background: transparent;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: oklch(0.4 0.02 270);
     border-radius: 3px;
   }
   
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.4 0.008 240 / 0.4);
+    border-radius: 3px;
+    border: 1px solid transparent;
+    backdrop-filter: blur(4px);
+  }
+  
   ::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.5 0.05 270);
+    background: oklch(0.5 0.015 240 / 0.6);
   }
   
   .dark ::-webkit-scrollbar-thumb {
-    background: oklch(0.3 0.02 270);
+    background: oklch(0.3 0.015 240 / 0.5);
   }
   
   .dark ::-webkit-scrollbar-thumb:hover {
-    background: oklch(0.4 0.05 270);
+    background: oklch(0.4 0.02 240 / 0.7);
+  }
+  
+  /* Focus styles for accessibility */
+  :focus-visible {
+    outline: 2px solid oklch(0.45 0.08 270);
+    outline-offset: 2px;
+  }
+  
+  .dark :focus-visible {
+    outline-color: oklch(0.72 0.12 270);
   }
 }
 
-/* Custom gradient backgrounds for cards and elements */
+/* Premium design utilities */
 @layer utilities {
-  .gradient-card {
-    background: linear-gradient(135deg, oklch(1 0 0) 0%, oklch(0.98 0.01 240) 100%);
+  /* Elevated card with sophisticated shadow and subtle border */
+  .card-elevated {
+    background: oklch(1 0 0);
+    border: 1px solid oklch(0.92 0.004 45);
+    box-shadow: 
+      0 1px 3px oklch(0.09 0.01 240 / 0.04),
+      0 1px 2px oklch(0.09 0.01 240 / 0.06),
+      0 0 0 1px oklch(0.96 0.002 45);
+    backdrop-filter: blur(8px);
   }
   
-  .dark .gradient-card {
-    background: linear-gradient(135deg, oklch(0.12 0.02 270) 0%, oklch(0.1 0.01 270) 100%);
+  .dark .card-elevated {
+    background: oklch(0.06 0.008 240);
+    border: 1px solid oklch(0.16 0.012 240);
+    box-shadow: 
+      0 1px 3px oklch(0.02 0.005 240 / 0.4),
+      0 1px 2px oklch(0.02 0.005 240 / 0.3),
+      0 0 0 1px oklch(0.08 0.01 240);
   }
   
+  /* Premium gradient backgrounds */
   .gradient-primary {
-    background: linear-gradient(135deg, oklch(0.55 0.18 270) 0%, oklch(0.6 0.2 240) 100%);
+    background: linear-gradient(135deg, 
+      oklch(0.45 0.08 270) 0%, 
+      oklch(0.52 0.1 290) 100%
+    );
   }
   
-  .gradient-secondary {
-    background: linear-gradient(135deg, oklch(0.65 0.18 200) 0%, oklch(0.7 0.15 180) 100%);
+  .gradient-surface {
+    background: linear-gradient(135deg, 
+      oklch(1 0 0) 0%, 
+      oklch(0.995 0.003 45) 100%
+    );
   }
   
-  .gradient-success {
-    background: linear-gradient(135deg, oklch(0.65 0.15 150) 0%, oklch(0.7 0.18 130) 100%);
+  .dark .gradient-surface {
+    background: linear-gradient(135deg, 
+      oklch(0.06 0.008 240) 0%, 
+      oklch(0.055 0.006 240) 100%
+    );
   }
   
-  .gradient-warning {
-    background: linear-gradient(135deg, oklch(0.75 0.15 60) 0%, oklch(0.8 0.18 40) 100%);
+  /* Sophisticated status indicators */
+  .status-success {
+    background: oklch(0.58 0.12 145);
+    color: oklch(0.98 0.003 145);
+    box-shadow: 0 0 0 1px oklch(0.58 0.12 145 / 0.2);
+  }
+  
+  .status-warning {
+    background: oklch(0.68 0.11 50);
+    color: oklch(0.12 0.008 50);
+    box-shadow: 0 0 0 1px oklch(0.68 0.11 50 / 0.2);
+  }
+  
+  .status-error {
+    background: oklch(0.54 0.15 15);
+    color: oklch(0.98 0.003 15);
+    box-shadow: 0 0 0 1px oklch(0.54 0.15 15 / 0.2);
+  }
+  
+  .status-info {
+    background: oklch(0.45 0.08 270);
+    color: oklch(0.98 0.005 270);
+    box-shadow: 0 0 0 1px oklch(0.45 0.08 270 / 0.2);
+  }
+  
+  .dark .status-success {
+    background: oklch(0.68 0.14 145);
+    color: oklch(0.04 0.005 145);
+  }
+  
+  .dark .status-warning {
+    background: oklch(0.75 0.13 50);
+    color: oklch(0.04 0.005 50);
+  }
+  
+  .dark .status-error {
+    background: oklch(0.64 0.17 15);
+    color: oklch(0.96 0.005 15);
+  }
+  
+  .dark .status-info {
+    background: oklch(0.72 0.12 270);
+    color: oklch(0.04 0.005 270);
+  }
+  
+  /* Premium hover states with sophisticated transforms */
+  .hover-lift {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 8px 16px oklch(0.09 0.01 240 / 0.08),
+      0 4px 8px oklch(0.09 0.01 240 / 0.06),
+      0 0 0 1px oklch(0.94 0.003 45);
+  }
+  
+  .dark .hover-lift:hover {
+    box-shadow: 
+      0 8px 16px oklch(0.02 0.005 240 / 0.5),
+      0 4px 8px oklch(0.02 0.005 240 / 0.4),
+      0 0 0 1px oklch(0.1 0.012 240);
+  }
+  
+  /* Sophisticated text hierarchy */
+  .text-display {
+    color: oklch(0.09 0.01 240);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  
+  .text-headline {
+    color: oklch(0.09 0.01 240);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+  }
+  
+  .text-body {
+    color: oklch(0.25 0.015 240);
+    font-weight: 400;
+    line-height: 1.5;
+  }
+  
+  .text-caption {
+    color: oklch(0.52 0.008 240);
+    font-weight: 400;
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  
+  .dark .text-display {
+    color: oklch(0.96 0.005 60);
+  }
+  
+  .dark .text-headline {
+    color: oklch(0.96 0.005 60);
+  }
+  
+  .dark .text-body {
+    color: oklch(0.78 0.008 60);
+  }
+  
+  .dark .text-caption {
+    color: oklch(0.65 0.008 240);
+  }
+  
+  /* Premium glass morphism effect */
+  .glass {
+    background: oklch(1 0 0 / 0.85);
+    backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid oklch(0.92 0.004 45 / 0.6);
+    box-shadow: 
+      0 8px 32px oklch(0.09 0.01 240 / 0.06),
+      inset 0 1px 0 oklch(0.98 0.002 45);
+  }
+  
+  .dark .glass {
+    background: oklch(0.06 0.008 240 / 0.85);
+    border: 1px solid oklch(0.16 0.012 240 / 0.6);
+    box-shadow: 
+      0 8px 32px oklch(0.02 0.005 240 / 0.4),
+      inset 0 1px 0 oklch(0.1 0.012 240);
+  }
+  
+  /* Sophisticated data visualization backgrounds */
+  .chart-bg-1 { background: oklch(0.45 0.08 270 / 0.08); }
+  .chart-bg-2 { background: oklch(0.58 0.12 145 / 0.08); }
+  .chart-bg-3 { background: oklch(0.68 0.11 50 / 0.08); }
+  .chart-bg-4 { background: oklch(0.55 0.12 300 / 0.08); }
+  .chart-bg-5 { background: oklch(0.52 0.1 190 / 0.08); }
+  
+  /* Status indicator backgrounds for better semantics */
+  .status-bg-primary { background: oklch(0.45 0.08 270 / 0.08); } /* Primary slate purple */
+  .status-bg-success { background: oklch(0.58 0.12 145 / 0.08); } /* Success emerald */
+  .status-bg-warning { background: oklch(0.68 0.11 50 / 0.08); } /* Warning amber */
+  .status-bg-danger { background: oklch(0.54 0.15 15 / 0.08); } /* Danger red - for overdue */
+  .status-bg-info { background: oklch(0.52 0.1 190 / 0.08); } /* Info teal */
+  
+  /* Subtle shine effect for premium elements */
+  .shine {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .shine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      oklch(1 0 0 / 0.2),
+      transparent
+    );
+    transition: left 0.5s ease;
+  }
+  
+  .shine:hover::before {
+    left: 100%;
+  }
+}
+
+/* Premium animation enhancements */
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .animate-slide-up {
+    animation: slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .animate-scale-in {
+    animation: scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 20px oklch(0.45 0.08 270 / 0.3);
+  }
+  to {
+    box-shadow: 0 0 30px oklch(0.45 0.08 270 / 0.6);
   }
 }

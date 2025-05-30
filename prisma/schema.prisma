@@ -8,15 +8,17 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  clerkId   String    @unique
-  email     String    @unique
-  name      String?
-  imageUrl  String?
-  clients   Client[]
-  projects  Project[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id                String             @id @default(cuid())
+  clerkId           String             @unique
+  email             String             @unique
+  name              String?
+  imageUrl          String?
+  clients           Client[]
+  projects          Project[]
+  documents         Document[]
+  documentTemplates DocumentTemplate[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 }
 
 model Client {
@@ -32,6 +34,7 @@ model Client {
   userId         String
   communications Communication[]
   projects       Project[]
+  documents      Document[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -71,6 +74,7 @@ model Project {
   client         Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId       String
   communications Communication[]
+  documents      Document[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -92,6 +96,58 @@ model Attachment {
   @@index([communicationId])
 }
 
+model DocumentTemplate {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  type        DocumentType
+  content     String       @db.Text // Rich text content with variable placeholders
+  variables   Json         @default("[]") // Array of DocumentVariable objects
+  isDefault   Boolean      @default(false)
+  isGlobal    Boolean      @default(false) // Global templates visible to all users
+  user        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String? // Nullable for global templates
+  documents   Document[] // Documents generated from this template
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([userId, type])
+  @@index([userId, isDefault])
+  @@index([isGlobal])
+  @@index([isGlobal, type])
+}
+
+model Document {
+  id             String            @id @default(cuid())
+  name           String
+  type           DocumentType
+  status         DocumentStatus    @default(DRAFT)
+  content        String?           @db.Text
+  url            String?
+  size           Int?
+  variableValues Json?             @default("{}") // Values used when generating from template
+  isTemplate     Boolean           @default(false) // Flag to distinguish templates from documents
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  client         Client?           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId       String?
+  project        Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId      String?
+  template       DocumentTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  templateId     String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([projectId])
+  @@index([templateId])
+  @@index([userId, type])
+  @@index([userId, status])
+  @@index([userId, isTemplate])
+}
+
 enum CommunicationType {
   EMAIL
   CALL
@@ -109,5 +165,21 @@ enum ProjectStatus {
 
 enum ClientStatus {
   ACTIVE
+  ARCHIVED
+}
+
+enum DocumentType {
+  PROPOSAL
+  CONTRACT
+  INVOICE
+  REPORT
+  OTHER
+}
+
+enum DocumentStatus {
+  DRAFT
+  SENT
+  APPROVED
+  REJECTED
   ARCHIVED
 }

@@ -1,10 +1,10 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Project, ProjectStatus } from "@/types";
-import { Search, Calendar, User } from "lucide-react";
+import { BarChart4, Calendar, Search, User } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -25,17 +25,17 @@ export function ProjectListView({ projects }: ProjectListViewProps) {
   const getStatusColor = (status: ProjectStatus) => {
     switch (status) {
       case "ACTIVE":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+        return "status-success";
       case "PROPOSAL":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+        return "status-info";
       case "ON_HOLD":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
+        return "status-warning";
       case "COMPLETED":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400";
+        return "bg-secondary text-secondary-foreground";
       case "CANCELED":
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+        return "status-error";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400";
+        return "bg-secondary text-secondary-foreground";
     }
   };
 
@@ -60,7 +60,7 @@ export function ProjectListView({ projects }: ProjectListViewProps) {
     <div className="flex-1 p-6 overflow-auto">
       <div className="flex flex-col space-y-4">
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search projects..."
@@ -129,7 +129,7 @@ function ProjectGrid({ projects, getStatusColor, getStatusLabel, emptyMessage }:
   if (projects.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">{emptyMessage}</p>
+        <p className="text-muted-foreground">{emptyMessage}</p>
       </div>
     );
   }
@@ -140,22 +140,37 @@ function ProjectGrid({ projects, getStatusColor, getStatusLabel, emptyMessage }:
         <Link
           key={project.id}
           href={`/projects/${project.id}`}
-          className="block p-6 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md transition-shadow"
+          className="block p-6 rounded-lg card-elevated hover-lift shine"
         >
           <div className="flex justify-between items-start mb-3">
-            <h2 className="font-semibold truncate flex-1 mr-2">{project.name}</h2>
+            <div className="flex items-center gap-2 flex-1 mr-2">
+              <div className={`p-1 rounded ${project.status === "ACTIVE" ? "status-bg-success" :
+                project.status === "PROPOSAL" ? "status-bg-primary" :
+                  project.status === "ON_HOLD" ? "status-bg-warning" :
+                    project.status === "COMPLETED" ? "bg-secondary" :
+                      "status-bg-danger"
+                }`}>
+                <BarChart4 className={`h-4 w-4 ${project.status === "ACTIVE" ? "text-chart-2" :
+                  project.status === "PROPOSAL" ? "text-chart-1" :
+                    project.status === "ON_HOLD" ? "text-chart-3" :
+                      project.status === "COMPLETED" ? "text-secondary-foreground" :
+                        "text-destructive"
+                  }`} />
+              </div>
+              <h2 className="font-semibold truncate flex-1 text-headline">{project.name}</h2>
+            </div>
             <Badge className={`text-xs ${getStatusColor(project.status)}`}>
               {getStatusLabel(project.status)}
             </Badge>
           </div>
 
           {project.description && (
-            <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-3">
+            <p className="text-sm text-body line-clamp-2 mb-3">
               {project.description}
             </p>
           )}
 
-          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-3">
+          <div className="flex items-center text-sm text-muted-foreground mb-3">
             <User className="h-4 w-4 mr-1" />
             <span className="truncate">
               {project.clientName}
@@ -163,7 +178,7 @@ function ProjectGrid({ projects, getStatusColor, getStatusLabel, emptyMessage }:
             </span>
           </div>
 
-          <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex justify-between items-center text-xs text-muted-foreground">
             <div className="flex items-center">
               <Calendar className="h-3 w-3 mr-1" />
               <span>

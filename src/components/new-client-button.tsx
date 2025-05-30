@@ -83,10 +83,10 @@ export function NewClientButton() {
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-1 group">
-          <Plus className={cn("h-3 w-3 group-hover:rotate-90 transition-transform duration-200", isOpen && "rotate-90")} />
+        <Button size="sm" className="gap-1">
+          <Plus className={cn("h-3 w-3", isOpen && "rotate-90")} />
           <span className="sr-only md:not-sr-only md:inline-block">Add Client</span>
-          <span className="md:hidden group-hover:rotate-90 transition-transform duration-200">+</span>
+          <span className="md:hidden">+</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">

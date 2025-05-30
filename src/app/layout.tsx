@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/sonner"
 import { QueryProvider } from '@/providers/query-client-provider'
 import {
   ClerkProvider
@@ -32,6 +33,7 @@ export default function RootLayout({
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           <QueryProvider>
             {children}
+            <Toaster />
           </QueryProvider>
         </body>
       </html>

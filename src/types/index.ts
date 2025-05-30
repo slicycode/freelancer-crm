@@ -1,16 +1,73 @@
-import { ClientStatus as PrismaClientStatus, CommunicationType as PrismaCommunicationType, ProjectStatus as PrismaProjectStatus } from "@prisma/client";
+import {
+  ClientStatus as PrismaClientStatus,
+  CommunicationType as PrismaCommunicationType,
+  DocumentStatus as PrismaDocumentStatus,
+  DocumentType as PrismaDocumentType,
+  ProjectStatus as PrismaProjectStatus
+} from "@prisma/client";
 
 // Re-export Prisma enums
 export type CommunicationType = PrismaCommunicationType;
 export type ProjectStatus = PrismaProjectStatus;
 export type ClientStatus = PrismaClientStatus;
-
-// Document types
-export type DocumentType = "PROPOSAL" | "CONTRACT" | "INVOICE" | "REPORT" | "OTHER";
-export type DocumentStatus = "DRAFT" | "SENT" | "APPROVED" | "REJECTED" | "ARCHIVED";
+export type DocumentType = PrismaDocumentType;
+export type DocumentStatus = PrismaDocumentStatus;
 
 // Invoice types
 export type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELED";
+
+// Document Template types
+export type VariableType = 
+  | "text"
+  | "textarea" 
+  | "number"
+  | "currency"
+  | "date"
+  | "select"
+  | "email"
+  | "phone"
+  | "url"
+  | "calculated";
+export type VariableSource = "manual" | "client" | "project" | "user" | "system";
+
+export interface DocumentVariable {
+  key: string;
+  label: string;
+  type: VariableType;
+  source: VariableSource;
+  required?: boolean;
+  defaultValue?: string;
+  description?: string;
+  options?: string[];
+  format?: string; // For currency/number formatting
+  formula?: string; // For calculated variables
+  validation?: {
+    min?: number;
+    max?: number;
+    pattern?: string;
+    message?: string;
+  };
+}
+
+export interface DocumentTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  type: DocumentType;
+  content: string; // Rich text content with variable placeholders
+  variables: DocumentVariable[];
+  isDefault: boolean;
+  isGlobal?: boolean; // Global templates visible to all users
+  userId?: string; // Optional for global templates
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GeneratedDocument {
+  templateId: string;
+  templateName: string;
+  variableValues: Record<string, any>;
+}
 
 // Client model
 export interface Client {
@@ -73,7 +130,7 @@ export interface Project {
   updatedAt: Date;
 }
 
-// Document model
+// Enhanced Document model - now supports both templates and generated documents
 export interface Document {
   id: string;
   name: string;
@@ -86,6 +143,10 @@ export interface Document {
   projectId?: string | null;
   clientName?: string; // For UI display
   projectName?: string; // For UI display
+  templateId?: string | null; // Reference to template if generated from one
+  templateName?: string; // For UI display
+  variableValues?: Record<string, any>; // Values used when generating from template
+  isTemplate?: boolean; // Flag to distinguish templates from documents
   userId: string;
   createdAt: Date;
   updatedAt: Date;

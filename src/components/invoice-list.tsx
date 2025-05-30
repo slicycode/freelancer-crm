@@ -1,10 +1,11 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Invoice, InvoiceStatus } from "@/types";
-import { Search, DollarSign, Calendar, User, FolderOpen, AlertCircle } from "lucide-react";
+import { AlertCircle, Calendar, DollarSign, Search, User } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -17,26 +18,41 @@ export function InvoiceListView({ invoices }: InvoiceListViewProps) {
   const [tab, setTab] = useState<string>("all");
 
   const filteredInvoices = invoices.filter(invoice =>
-    invoice.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     invoice.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (invoice.clientName && invoice.clientName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (invoice.projectName && invoice.projectName.toLowerCase().includes(searchQuery.toLowerCase()))
+    (invoice.clientName && invoice.clientName.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const getStatusColor = (status: InvoiceStatus) => {
     switch (status) {
       case "DRAFT":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400";
+        return "bg-secondary text-secondary-foreground";
       case "SENT":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+        return "status-bg-warning text-chart-3";
       case "PAID":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+        return "status-bg-success text-chart-2";
       case "OVERDUE":
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+        return "status-bg-danger text-destructive";
       case "CANCELED":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
+        return "bg-secondary text-secondary-foreground";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400";
+        return "bg-secondary text-secondary-foreground";
+    }
+  };
+
+  const getStatusLabel = (status: InvoiceStatus) => {
+    switch (status) {
+      case "DRAFT":
+        return "Draft";
+      case "SENT":
+        return "Sent";
+      case "PAID":
+        return "Paid";
+      case "OVERDUE":
+        return "Overdue";
+      case "CANCELED":
+        return "Canceled";
+      default:
+        return status;
     }
   };
 
@@ -47,15 +63,90 @@ export function InvoiceListView({ invoices }: InvoiceListViewProps) {
     }).format(amount);
   };
 
-  const isOverdue = (invoice: Invoice) => {
-    return invoice.status !== "PAID" && invoice.status !== "CANCELED" && new Date(invoice.dueDate) < new Date();
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
+
+  const isOverdue = (invoice: Invoice) => {
+    return invoice.status === "OVERDUE" || (invoice.status === "SENT" && new Date(invoice.dueDate) < new Date());
+  };
+
+  // Calculate summary statistics
+  const totalAmount = invoices.reduce((sum, invoice) => sum + invoice.amount, 0);
+  const paidAmount = invoices
+    .filter(invoice => invoice.status === "PAID")
+    .reduce((sum, invoice) => sum + invoice.amount, 0);
+  const sentAmount = invoices
+    .filter(invoice => invoice.status === "SENT")
+    .reduce((sum, invoice) => sum + invoice.amount, 0);
+  const overdueAmount = invoices
+    .filter(invoice => isOverdue(invoice))
+    .reduce((sum, invoice) => sum + invoice.amount, 0);
 
   return (
     <div className="flex-1 p-6 overflow-auto">
-      <div className="flex flex-col space-y-4">
+      <div className="flex flex-col space-y-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="glass shine">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(totalAmount, "USD")}</div>
+              <p className="text-xs text-muted-foreground">
+                Across {invoices.length} invoice{invoices.length === 1 ? "" : "s"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="status-bg-success shine">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-chart-2">Paid</CardTitle>
+              <DollarSign className="h-4 w-4 text-chart-2" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-chart-2">{formatCurrency(paidAmount, "USD")}</div>
+              <p className="text-xs text-chart-2/80">
+                {invoices.filter(i => i.status === "PAID").length} paid invoice{invoices.filter(i => i.status === "PAID").length === 1 ? "" : "s"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="status-bg-warning shine">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-chart-3">Sent</CardTitle>
+              <DollarSign className="h-4 w-4 text-chart-3" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-chart-3">{formatCurrency(sentAmount, "USD")}</div>
+              <p className="text-xs text-chart-3/80">
+                {invoices.filter(i => i.status === "SENT").length} sent invoice{invoices.filter(i => i.status === "SENT").length === 1 ? "" : "s"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className={`shine ${overdueAmount > 0 ? 'status-bg-danger' : 'glass'}`}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className={`text-sm font-medium ${overdueAmount > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                Overdue
+              </CardTitle>
+              <AlertCircle className={`h-4 w-4 ${overdueAmount > 0 ? 'text-destructive' : 'text-muted-foreground'}`} />
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${overdueAmount > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                {formatCurrency(overdueAmount, "USD")}
+              </div>
+              <p className={`text-xs ${overdueAmount > 0 ? 'text-destructive/80' : 'text-muted-foreground'}`}>
+                {invoices.filter(i => isOverdue(i)).length} overdue invoice{invoices.filter(i => isOverdue(i)).length === 1 ? "" : "s"}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search invoices..."
@@ -68,16 +159,16 @@ export function InvoiceListView({ invoices }: InvoiceListViewProps) {
         <Tabs defaultValue="all" value={tab} onValueChange={setTab}>
           <TabsList>
             <TabsTrigger value="all">All Invoices</TabsTrigger>
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="paid">Paid</TabsTrigger>
+            <TabsTrigger value="sent">Sent</TabsTrigger>
             <TabsTrigger value="overdue">Overdue</TabsTrigger>
           </TabsList>
           <TabsContent value="all" className="mt-4">
             <InvoiceGrid
               invoices={filteredInvoices}
               getStatusColor={getStatusColor}
+              getStatusLabel={getStatusLabel}
               formatCurrency={formatCurrency}
-              isOverdue={isOverdue}
+              formatDate={formatDate}
               emptyMessage={
                 searchQuery
                   ? "No invoices match your search"
@@ -85,38 +176,27 @@ export function InvoiceListView({ invoices }: InvoiceListViewProps) {
               }
             />
           </TabsContent>
-          <TabsContent value="pending" className="mt-4">
+          <TabsContent value="sent" className="mt-4">
             <InvoiceGrid
               invoices={filteredInvoices.filter(i => i.status === "SENT")}
               getStatusColor={getStatusColor}
+              getStatusLabel={getStatusLabel}
               formatCurrency={formatCurrency}
-              isOverdue={isOverdue}
+              formatDate={formatDate}
               emptyMessage={
                 searchQuery
-                  ? "No pending invoices match your search"
-                  : "No pending invoices."
-              }
-            />
-          </TabsContent>
-          <TabsContent value="paid" className="mt-4">
-            <InvoiceGrid
-              invoices={filteredInvoices.filter(i => i.status === "PAID")}
-              getStatusColor={getStatusColor}
-              formatCurrency={formatCurrency}
-              isOverdue={isOverdue}
-              emptyMessage={
-                searchQuery
-                  ? "No paid invoices match your search"
-                  : "No paid invoices."
+                  ? "No sent invoices match your search"
+                  : "No sent invoices."
               }
             />
           </TabsContent>
           <TabsContent value="overdue" className="mt-4">
             <InvoiceGrid
-              invoices={filteredInvoices.filter(i => i.status === "OVERDUE" || isOverdue(i))}
+              invoices={filteredInvoices.filter(i => isOverdue(i))}
               getStatusColor={getStatusColor}
+              getStatusLabel={getStatusLabel}
               formatCurrency={formatCurrency}
-              isOverdue={isOverdue}
+              formatDate={formatDate}
               emptyMessage={
                 searchQuery
                   ? "No overdue invoices match your search"
@@ -133,16 +213,24 @@ export function InvoiceListView({ invoices }: InvoiceListViewProps) {
 interface InvoiceGridProps {
   invoices: Invoice[];
   getStatusColor: (status: InvoiceStatus) => string;
+  getStatusLabel: (status: InvoiceStatus) => string;
   formatCurrency: (amount: number, currency: string) => string;
-  isOverdue: (invoice: Invoice) => boolean;
+  formatDate: (date: Date) => string;
   emptyMessage: string;
 }
 
-function InvoiceGrid({ invoices, getStatusColor, formatCurrency, isOverdue, emptyMessage }: InvoiceGridProps) {
+function InvoiceGrid({
+  invoices,
+  getStatusColor,
+  getStatusLabel,
+  formatCurrency,
+  formatDate,
+  emptyMessage
+}: InvoiceGridProps) {
   if (invoices.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">{emptyMessage}</p>
+        <p className="text-muted-foreground">{emptyMessage}</p>
       </div>
     );
   }
@@ -153,62 +241,39 @@ function InvoiceGrid({ invoices, getStatusColor, formatCurrency, isOverdue, empt
         <Link
           key={invoice.id}
           href={`/invoices/${invoice.id}`}
-          className="block p-6 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md transition-shadow"
+          className="block p-6 rounded-lg card-elevated hover-lift"
         >
           <div className="flex justify-between items-start mb-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-2 mb-1">
-                <h2 className="font-semibold text-sm text-gray-500 dark:text-gray-400">{invoice.number}</h2>
-                {isOverdue(invoice) && (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                )}
-              </div>
-              <p className="font-medium truncate">{invoice.title}</p>
+            <div className="flex flex-col">
+              <h2 className="font-semibold truncate text-headline">{invoice.number}</h2>
+              <p className="text-sm text-body">{formatCurrency(invoice.amount, invoice.currency)}</p>
             </div>
-            <Badge className={`text-xs ${getStatusColor(invoice.status)}`}>
-              {invoice.status}
-            </Badge>
+            <div className="flex flex-col items-end gap-1">
+              <Badge className={`text-xs ${getStatusColor(invoice.status)}`}>
+                {getStatusLabel(invoice.status)}
+              </Badge>
+            </div>
           </div>
 
-          <div className="flex items-center text-lg font-bold text-green-600 dark:text-green-400 mb-3">
-            <DollarSign className="h-5 w-5 mr-1" />
-            <span>{formatCurrency(invoice.amount, invoice.currency)}</span>
+          <div className="flex items-center text-sm text-muted-foreground mb-3">
+            <User className="h-4 w-4 mr-1" />
+            <span className="truncate">
+              {invoice.clientName || "No client"}
+              {invoice.projectName && ` • ${invoice.projectName}`}
+            </span>
           </div>
 
-          {invoice.clientName && (
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
-              <User className="h-4 w-4 mr-1" />
-              <span className="truncate">{invoice.clientName}</span>
-            </div>
-          )}
-
-          {invoice.projectName && (
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-2">
-              <FolderOpen className="h-4 w-4 mr-1" />
-              <span className="truncate">{invoice.projectName}</span>
-            </div>
-          )}
-
-          <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex justify-between items-center text-xs text-muted-foreground">
             <div className="flex items-center">
               <Calendar className="h-3 w-3 mr-1" />
-              <span>Due: {formatDate(invoice.dueDate.toString())}</span>
+              <span>Due {formatDate(invoice.dueDate)}</span>
             </div>
-            {invoice.paidDate && (
-              <span>Paid: {formatDate(invoice.paidDate.toString())}</span>
-            )}
+            <span>
+              Created {formatDate(invoice.createdAt)}
+            </span>
           </div>
         </Link>
       ))}
     </div>
   );
-}
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: date.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined
-  });
 } 

@@ -54,7 +54,7 @@ export function NewCommunicationForm({ clientId, projects = [] }: NewCommunicati
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+        <Button className="gap-2">
           <Plus className="h-4 w-4" />
           <span>New Communication</span>
         </Button>
@@ -134,7 +134,7 @@ export function NewCommunicationForm({ clientId, projects = [] }: NewCommunicati
             )}
             {/* We'll implement file uploads in a future iteration */}
           </div>
-          {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
+          {error && <p className="text-sm text-destructive mb-4">{error}</p>}
           <DialogFooter>
             <Button
               type="button"
