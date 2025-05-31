@@ -134,23 +134,147 @@ model DocumentVersion {
 }
 
 model Project {
-  id             String          @id @default(cuid())
-  name           String
-  description    String?         @db.Text
-  status         ProjectStatus   @default(PROPOSAL)
-  startDate      DateTime?
-  endDate        DateTime?
+  id          String        @id @default(cuid())
+  name        String
+  description String?       @db.Text
+  status      ProjectStatus @default(PROPOSAL)
+  startDate   DateTime?
+  endDate     DateTime?
+
+  estimatedHours Int?
+  actualHours    Int?           @default(0)
+  budgetType     BudgetType?    @default(FIXED)
+  totalBudget    Decimal?       @db.Decimal(10, 2)
+  hourlyRate     Decimal?       @db.Decimal(8, 2)
+  invoicedAmount Decimal?       @default(0) @db.Decimal(10, 2)
+  progress       Int?           @default(0)
+  health         ProjectHealth? @default(ON_TRACK)
+
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         String
   client         Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId       String
   communications Communication[]
   documents      Document[]
+  milestones     Milestone[]
+  tasks          Task[]
+  timeEntries    TimeEntry[]
+  phases         ProjectPhase[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
   @@index([userId])
   @@index([clientId])
+  @@index([status])
+  @@index([health])
+  @@index([endDate])
+}
+
+model Milestone {
+  id                     String          @id @default(cuid())
+  name                   String
+  description            String?         @db.Text
+  dueDate                DateTime
+  status                 MilestoneStatus @default(PENDING)
+  deliverables           Json            @default("[]")
+  paymentAmount          Decimal?        @db.Decimal(10, 2)
+  clientApprovalRequired Boolean         @default(false)
+  order                  Int
+  completedAt            DateTime?
+
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  tasks       Task[]
+  timeEntries TimeEntry[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([projectId, order])
+}
+
+model Task {
+  id             String       @id @default(cuid())
+  title          String
+  description    String?      @db.Text
+  status         TaskStatus   @default(TODO)
+  priority       TaskPriority @default(MEDIUM)
+  estimatedHours Int          @default(0)
+  actualHours    Int          @default(0)
+  dueDate        DateTime?
+  dependencies   Json         @default("[]")
+  completedAt    DateTime?
+
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  milestone   Milestone?  @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  milestoneId String?
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  timeEntries TimeEntry[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([projectId])
+  @@index([milestoneId])
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+  @@index([dueDate])
+}
+
+model TimeEntry {
+  id          String    @id @default(cuid())
+  startTime   DateTime
+  endTime     DateTime?
+  duration    Int
+  description String
+  billable    Boolean   @default(true)
+  hourlyRate  Decimal?  @db.Decimal(8, 2)
+
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  milestone   Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  milestoneId String?
+  task        Task?      @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  taskId      String?
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([projectId])
+  @@index([milestoneId])
+  @@index([taskId])
+  @@index([userId])
+  @@index([startTime])
+  @@index([billable])
+}
+
+model ProjectPhase {
+  id          String             @id @default(cuid())
+  name        String
+  description String?            @db.Text
+  startDate   DateTime
+  endDate     DateTime
+  status      ProjectPhaseStatus @default(NOT_STARTED)
+  order       Int
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([projectId, order])
 }
 
 model User {
@@ -163,8 +287,52 @@ model User {
   projects          Project[]
   documents         Document[]
   documentTemplates DocumentTemplate[]
+  milestones        Milestone[]
+  tasks             Task[]
+  timeEntries       TimeEntry[]
+  projectPhases     ProjectPhase[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
+}
+
+enum BudgetType {
+  FIXED
+  HOURLY
+  RETAINER
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ProjectHealth {
+  ON_TRACK
+  AT_RISK
+  DELAYED
+}
+
+enum ProjectPhaseStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
 }
 
 enum ClientStatus {

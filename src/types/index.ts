@@ -3,7 +3,13 @@ import {
   CommunicationType as PrismaCommunicationType,
   DocumentStatus as PrismaDocumentStatus,
   DocumentType as PrismaDocumentType,
-  ProjectStatus as PrismaProjectStatus
+  ProjectStatus as PrismaProjectStatus,
+  BudgetType as PrismaBudgetType,
+  MilestoneStatus as PrismaMilestoneStatus,
+  TaskStatus as PrismaTaskStatus,
+  TaskPriority as PrismaTaskPriority,
+  ProjectHealth as PrismaProjectHealth,
+  ProjectPhaseStatus as PrismaProjectPhaseStatus
 } from "@prisma/client";
 
 // Re-export Prisma enums
@@ -12,6 +18,14 @@ export type ProjectStatus = PrismaProjectStatus;
 export type ClientStatus = PrismaClientStatus;
 export type DocumentType = PrismaDocumentType;
 export type DocumentStatus = PrismaDocumentStatus;
+
+// Enhanced project management types
+export type BudgetType = PrismaBudgetType;
+export type MilestoneStatus = PrismaMilestoneStatus;
+export type TaskStatus = PrismaTaskStatus;
+export type TaskPriority = PrismaTaskPriority;
+export type ProjectHealth = PrismaProjectHealth;
+export type ProjectPhaseStatus = PrismaProjectPhaseStatus;
 
 // Invoice types
 export type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELED";
@@ -112,7 +126,72 @@ export interface Attachment {
   updatedAt: Date;
 }
 
-// Project model
+export interface Milestone {
+  id: string;
+  name: string;
+  description?: string;
+  dueDate: Date;
+  status: MilestoneStatus;
+  deliverables: string[];
+  paymentAmount?: number;
+  clientApprovalRequired: boolean;
+  projectId: string;
+  order: number;
+  completedAt?: Date;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  estimatedHours: number;
+  actualHours: number;
+  dueDate?: Date;
+  milestoneId?: string;
+  projectId: string;
+  dependencies: string[]; // Task IDs
+  completedAt?: Date;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TimeEntry {
+  id: string;
+  projectId: string;
+  milestoneId?: string;
+  taskId?: string;
+  startTime: Date;
+  endTime?: Date;
+  duration: number; // minutes
+  description: string;
+  billable: boolean;
+  hourlyRate?: number;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProjectPhase {
+  id: string;
+  name: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  status: ProjectPhaseStatus;
+  projectId: string;
+  order: number;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Enhanced Project model - matching the Prisma schema
 export interface Project {
   id: string;
   name: string;
@@ -120,11 +199,31 @@ export interface Project {
   status: ProjectStatus;
   startDate?: Date | null;
   endDate?: Date | null;
+  
+  // Enhanced project management fields (matching Prisma schema types)
+  estimatedHours?: number | null;
+  actualHours?: number | null;
+  budgetType?: BudgetType | null;
+  totalBudget?: number | null;
+  hourlyRate?: number | null;
+  invoicedAmount?: number | null;
+  progress?: number | null; // 0-100 percentage
+  health?: ProjectHealth | null;
+  
+  // Existing fields
   clientId: string;
   clientName?: string; // For UI display
   clientCompany?: string | null; // For UI display
   lastActivity?: Date; // For UI display
   communicationCount?: number; // For UI display
+  
+  // Enhanced relationship counts for UI
+  milestoneCount?: number;
+  taskCount?: number;
+  completedTaskCount?: number;
+  timeEntryCount?: number;
+  documentCount?: number;
+  
   userId: string;
   createdAt: Date;
   updatedAt: Date;
